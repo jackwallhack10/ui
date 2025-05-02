@@ -1,0 +1,132 @@
+-- ModernUILib.lua
+-- A simple, modern UI library for Roblox executors
+local ModernUILib = {}
+ModernUILib.__index = ModernUILib
+
+function ModernUILib:CreateWindow(title)
+    local ScreenGui = Instance.new("ScreenGui")
+    ScreenGui.Name = "ModernUI"
+    ScreenGui.Parent = game.CoreGui
+
+    local Main = Instance.new("Frame")
+    Main.Size = UDim2.new(0, 400, 0, 300)
+    Main.Position = UDim2.new(0.5, -200, 0.5, -150)
+    Main.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
+    Main.BorderSizePixel = 0
+    Main.AnchorPoint = Vector2.new(0.5, 0.5)
+    Main.Active = true
+    Main.Draggable = true
+    Main.Parent = ScreenGui
+
+    local UICorner = Instance.new("UICorner", Main)
+    UICorner.CornerRadius = UDim.new(0, 10)
+
+    local Title = Instance.new("TextLabel")
+    Title.Size = UDim2.new(1, 0, 0, 40)
+    Title.BackgroundTransparency = 1
+    Title.Text = title or "Modern UI"
+    Title.Font = Enum.Font.GothamBold
+    Title.TextSize = 22
+    Title.TextColor3 = Color3.fromRGB(255,255,255)
+    Title.Parent = Main
+
+    local TabHolder = Instance.new("Frame")
+    TabHolder.Size = UDim2.new(1, 0, 0, 40)
+    TabHolder.Position = UDim2.new(0, 0, 0, 40)
+    TabHolder.BackgroundTransparency = 1
+    TabHolder.Parent = Main
+
+    local TabLayout = Instance.new("UIListLayout", TabHolder)
+    TabLayout.FillDirection = Enum.FillDirection.Horizontal
+    TabLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    TabLayout.Padding = UDim.new(0, 8)
+
+    local ContentFrame = Instance.new("Frame")
+    ContentFrame.Size = UDim2.new(1, 0, 1, -80)
+    ContentFrame.Position = UDim2.new(0, 0, 0, 80)
+    ContentFrame.BackgroundTransparency = 1
+    ContentFrame.ClipsDescendants = true
+    ContentFrame.Parent = Main
+
+    local Tabs = {}
+
+    function ModernUILib:CreateTab(tabName)
+        local TabBtn = Instance.new("TextButton")
+        TabBtn.Size = UDim2.new(0, 100, 1, 0)
+        TabBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
+        TabBtn.Text = tabName
+        TabBtn.Font = Enum.Font.Gotham
+        TabBtn.TextSize = 18
+        TabBtn.TextColor3 = Color3.fromRGB(200,200,200)
+        TabBtn.AutoButtonColor = false
+        TabBtn.Parent = TabHolder
+
+        local TabUICorner = Instance.new("UICorner", TabBtn)
+        TabUICorner.CornerRadius = UDim.new(0, 8)
+
+        local TabContent = Instance.new("Frame")
+        TabContent.Size = UDim2.new(1, 0, 1, 0)
+        TabContent.BackgroundTransparency = 1
+        TabContent.Visible = false
+        TabContent.Parent = ContentFrame
+
+        Tabs[tabName] = TabContent
+
+        TabBtn.MouseButton1Click:Connect(function()
+            for _, v in pairs(ContentFrame:GetChildren()) do
+                if v:IsA("Frame") then v.Visible = false end
+            end
+            TabContent.Visible = true
+        end)
+
+        if #ContentFrame:GetChildren() == 1 then
+            TabContent.Visible = true
+        end
+
+        local TabObj = {}
+        function TabObj:AddToggle(text, default, callback)
+            local Toggle = Instance.new("TextButton")
+            Toggle.Size = UDim2.new(1, -20, 0, 36)
+            Toggle.Position = UDim2.new(0, 10, 0, 10 + (#TabContent:GetChildren()-1)*46)
+            Toggle.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
+            Toggle.Text = ""
+            Toggle.AutoButtonColor = false
+            Toggle.Parent = TabContent
+
+            local ToggleUICorner = Instance.new("UICorner", Toggle)
+            ToggleUICorner.CornerRadius = UDim.new(0, 8)
+
+            local Label = Instance.new("TextLabel")
+            Label.Size = UDim2.new(1, -50, 1, 0)
+            Label.Position = UDim2.new(0, 10, 0, 0)
+            Label.BackgroundTransparency = 1
+            Label.Text = text
+            Label.Font = Enum.Font.Gotham
+            Label.TextSize = 18
+            Label.TextColor3 = Color3.fromRGB(220,220,220)
+            Label.TextXAlignment = Enum.TextXAlignment.Left
+            Label.Parent = Toggle
+
+            local State = Instance.new("Frame")
+            State.Size = UDim2.new(0, 28, 0, 28)
+            State.Position = UDim2.new(1, -38, 0.5, -14)
+            State.BackgroundColor3 = default and Color3.fromRGB(0, 170, 255) or Color3.fromRGB(60, 60, 70)
+            State.Parent = Toggle
+
+            local StateCorner = Instance.new("UICorner", State)
+            StateCorner.CornerRadius = UDim.new(1, 0)
+
+            local On = default
+            Toggle.MouseButton1Click:Connect(function()
+                On = not On
+                State.BackgroundColor3 = On and Color3.fromRGB(0, 170, 255) or Color3.fromRGB(60, 60, 70)
+                if callback then callback(On) end
+            end)
+            if callback then callback(On) end
+        end
+        return TabObj
+    end
+    return ModernUILib
+end
+
+return ModernUILib 
