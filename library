@@ -217,6 +217,7 @@ function ModernUILib:CreateWindow(title)
         end
         return TabObj
     end
+    ModernUILib.AddTab = ModernUILib.CreateTab -- Alias for compatibility
     return ModernUILib
 end
 
