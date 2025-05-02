@@ -1,5 +1,5 @@
 -- ModernUILib.lua
--- A simple, modern UI library for Roblox executors
+-- A modern UI library for Roblox executors with keybind and slider support
 local ModernUILib = {}
 ModernUILib.__index = ModernUILib
 
@@ -9,9 +9,9 @@ function ModernUILib:CreateWindow(title)
     ScreenGui.Parent = game.CoreGui
 
     local Main = Instance.new("Frame")
-    Main.Size = UDim2.new(0, 400, 0, 300)
-    Main.Position = UDim2.new(0.5, -200, 0.5, -150)
-    Main.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
+    Main.Size = UDim2.new(0, 420, 0, 340)
+    Main.Position = UDim2.new(0.5, -210, 0.5, -170)
+    Main.BackgroundColor3 = Color3.fromRGB(24, 24, 32)
     Main.BorderSizePixel = 0
     Main.AnchorPoint = Vector2.new(0.5, 0.5)
     Main.Active = true
@@ -19,31 +19,31 @@ function ModernUILib:CreateWindow(title)
     Main.Parent = ScreenGui
 
     local UICorner = Instance.new("UICorner", Main)
-    UICorner.CornerRadius = UDim.new(0, 10)
+    UICorner.CornerRadius = UDim.new(0, 14)
 
     local Title = Instance.new("TextLabel")
-    Title.Size = UDim2.new(1, 0, 0, 40)
+    Title.Size = UDim2.new(1, 0, 0, 48)
     Title.BackgroundTransparency = 1
     Title.Text = title or "Modern UI"
     Title.Font = Enum.Font.GothamBold
-    Title.TextSize = 22
-    Title.TextColor3 = Color3.fromRGB(255,255,255)
+    Title.TextSize = 26
+    Title.TextColor3 = Color3.fromRGB(0, 200, 255)
     Title.Parent = Main
 
     local TabHolder = Instance.new("Frame")
-    TabHolder.Size = UDim2.new(1, 0, 0, 40)
-    TabHolder.Position = UDim2.new(0, 0, 0, 40)
+    TabHolder.Size = UDim2.new(1, 0, 0, 44)
+    TabHolder.Position = UDim2.new(0, 0, 0, 48)
     TabHolder.BackgroundTransparency = 1
     TabHolder.Parent = Main
 
     local TabLayout = Instance.new("UIListLayout", TabHolder)
     TabLayout.FillDirection = Enum.FillDirection.Horizontal
     TabLayout.SortOrder = Enum.SortOrder.LayoutOrder
-    TabLayout.Padding = UDim.new(0, 8)
+    TabLayout.Padding = UDim.new(0, 10)
 
     local ContentFrame = Instance.new("Frame")
-    ContentFrame.Size = UDim2.new(1, 0, 1, -80)
-    ContentFrame.Position = UDim2.new(0, 0, 0, 80)
+    ContentFrame.Size = UDim2.new(1, 0, 1, -92)
+    ContentFrame.Position = UDim2.new(0, 0, 0, 92)
     ContentFrame.BackgroundTransparency = 1
     ContentFrame.ClipsDescendants = true
     ContentFrame.Parent = Main
@@ -52,17 +52,17 @@ function ModernUILib:CreateWindow(title)
 
     function ModernUILib:CreateTab(tabName)
         local TabBtn = Instance.new("TextButton")
-        TabBtn.Size = UDim2.new(0, 100, 1, 0)
-        TabBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
+        TabBtn.Size = UDim2.new(0, 120, 1, 0)
+        TabBtn.BackgroundColor3 = Color3.fromRGB(32, 32, 48)
         TabBtn.Text = tabName
         TabBtn.Font = Enum.Font.Gotham
-        TabBtn.TextSize = 18
-        TabBtn.TextColor3 = Color3.fromRGB(200,200,200)
+        TabBtn.TextSize = 20
+        TabBtn.TextColor3 = Color3.fromRGB(0,200,255)
         TabBtn.AutoButtonColor = false
         TabBtn.Parent = TabHolder
 
         local TabUICorner = Instance.new("UICorner", TabBtn)
-        TabUICorner.CornerRadius = UDim.new(0, 8)
+        TabUICorner.CornerRadius = UDim.new(0, 10)
 
         local TabContent = Instance.new("Frame")
         TabContent.Size = UDim2.new(1, 0, 1, 0)
@@ -86,31 +86,31 @@ function ModernUILib:CreateWindow(title)
         local TabObj = {}
         function TabObj:AddToggle(text, default, callback)
             local Toggle = Instance.new("TextButton")
-            Toggle.Size = UDim2.new(1, -20, 0, 36)
-            Toggle.Position = UDim2.new(0, 10, 0, 10 + (#TabContent:GetChildren()-1)*46)
-            Toggle.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
+            Toggle.Size = UDim2.new(1, -24, 0, 40)
+            Toggle.Position = UDim2.new(0, 12, 0, 12 + (#TabContent:GetChildren()-1)*52)
+            Toggle.BackgroundColor3 = Color3.fromRGB(32, 32, 48)
             Toggle.Text = ""
             Toggle.AutoButtonColor = false
             Toggle.Parent = TabContent
 
             local ToggleUICorner = Instance.new("UICorner", Toggle)
-            ToggleUICorner.CornerRadius = UDim.new(0, 8)
+            ToggleUICorner.CornerRadius = UDim.new(0, 10)
 
             local Label = Instance.new("TextLabel")
-            Label.Size = UDim2.new(1, -50, 1, 0)
-            Label.Position = UDim2.new(0, 10, 0, 0)
+            Label.Size = UDim2.new(1, -60, 1, 0)
+            Label.Position = UDim2.new(0, 14, 0, 0)
             Label.BackgroundTransparency = 1
             Label.Text = text
             Label.Font = Enum.Font.Gotham
-            Label.TextSize = 18
-            Label.TextColor3 = Color3.fromRGB(220,220,220)
+            Label.TextSize = 20
+            Label.TextColor3 = Color3.fromRGB(200,220,255)
             Label.TextXAlignment = Enum.TextXAlignment.Left
             Label.Parent = Toggle
 
             local State = Instance.new("Frame")
-            State.Size = UDim2.new(0, 28, 0, 28)
-            State.Position = UDim2.new(1, -38, 0.5, -14)
-            State.BackgroundColor3 = default and Color3.fromRGB(0, 170, 255) or Color3.fromRGB(60, 60, 70)
+            State.Size = UDim2.new(0, 32, 0, 32)
+            State.Position = UDim2.new(1, -46, 0.5, -16)
+            State.BackgroundColor3 = default and Color3.fromRGB(0, 200, 255) or Color3.fromRGB(60, 60, 80)
             State.Parent = Toggle
 
             local StateCorner = Instance.new("UICorner", State)
@@ -119,10 +119,101 @@ function ModernUILib:CreateWindow(title)
             local On = default
             Toggle.MouseButton1Click:Connect(function()
                 On = not On
-                State.BackgroundColor3 = On and Color3.fromRGB(0, 170, 255) or Color3.fromRGB(60, 60, 70)
+                State.BackgroundColor3 = On and Color3.fromRGB(0, 200, 255) or Color3.fromRGB(60, 60, 80)
                 if callback then callback(On) end
             end)
             if callback then callback(On) end
+        end
+        function TabObj:AddKeybind(text, defaultKey, callback)
+            local KeybindFrame = Instance.new("Frame")
+            KeybindFrame.Size = UDim2.new(1, -24, 0, 40)
+            KeybindFrame.Position = UDim2.new(0, 12, 0, 12 + (#TabContent:GetChildren()-1)*52)
+            KeybindFrame.BackgroundColor3 = Color3.fromRGB(32, 32, 48)
+            KeybindFrame.Parent = TabContent
+            local KeybindCorner = Instance.new("UICorner", KeybindFrame)
+            KeybindCorner.CornerRadius = UDim.new(0, 10)
+
+            local Label = Instance.new("TextLabel")
+            Label.Size = UDim2.new(1, -100, 1, 0)
+            Label.Position = UDim2.new(0, 14, 0, 0)
+            Label.BackgroundTransparency = 1
+            Label.Text = text
+            Label.Font = Enum.Font.Gotham
+            Label.TextSize = 20
+            Label.TextColor3 = Color3.fromRGB(200,220,255)
+            Label.TextXAlignment = Enum.TextXAlignment.Left
+            Label.Parent = KeybindFrame
+
+            local KeyBtn = Instance.new("TextButton")
+            KeyBtn.Size = UDim2.new(0, 80, 0, 28)
+            KeyBtn.Position = UDim2.new(1, -90, 0.5, -14)
+            KeyBtn.BackgroundColor3 = Color3.fromRGB(0, 200, 255)
+            KeyBtn.Text = tostring(defaultKey.Name)
+            KeyBtn.Font = Enum.Font.Gotham
+            KeyBtn.TextSize = 18
+            KeyBtn.TextColor3 = Color3.fromRGB(24,24,32)
+            KeyBtn.Parent = KeybindFrame
+            local KeyBtnCorner = Instance.new("UICorner", KeyBtn)
+            KeyBtnCorner.CornerRadius = UDim.new(0, 8)
+
+            local waiting = false
+            KeyBtn.MouseButton1Click:Connect(function()
+                KeyBtn.Text = "..."
+                waiting = true
+            end)
+            game:GetService("UserInputService").InputBegan:Connect(function(input, processed)
+                if waiting and not processed and input.UserInputType == Enum.UserInputType.Keyboard then
+                    waiting = false
+                    KeyBtn.Text = tostring(input.KeyCode.Name)
+                    if callback then callback(input.KeyCode) end
+                end
+            end)
+        end
+        function TabObj:AddSlider(text, min, max, default, callback)
+            local SliderFrame = Instance.new("Frame")
+            SliderFrame.Size = UDim2.new(1, -24, 0, 40)
+            SliderFrame.Position = UDim2.new(0, 12, 0, 12 + (#TabContent:GetChildren()-1)*52)
+            SliderFrame.BackgroundColor3 = Color3.fromRGB(32, 32, 48)
+            SliderFrame.Parent = TabContent
+            local SliderCorner = Instance.new("UICorner", SliderFrame)
+            SliderCorner.CornerRadius = UDim.new(0, 10)
+
+            local Label = Instance.new("TextLabel")
+            Label.Size = UDim2.new(1, -100, 1, 0)
+            Label.Position = UDim2.new(0, 14, 0, 0)
+            Label.BackgroundTransparency = 1
+            Label.Text = text .. ": " .. tostring(default)
+            Label.Font = Enum.Font.Gotham
+            Label.TextSize = 20
+            Label.TextColor3 = Color3.fromRGB(200,220,255)
+            Label.TextXAlignment = Enum.TextXAlignment.Left
+            Label.Parent = SliderFrame
+
+            local SliderBtn = Instance.new("TextButton")
+            SliderBtn.Size = UDim2.new(0, 80, 0, 28)
+            SliderBtn.Position = UDim2.new(1, -90, 0.5, -14)
+            SliderBtn.BackgroundColor3 = Color3.fromRGB(0, 200, 255)
+            SliderBtn.Text = tostring(default)
+            SliderBtn.Font = Enum.Font.Gotham
+            SliderBtn.TextSize = 18
+            SliderBtn.TextColor3 = Color3.fromRGB(24,24,32)
+            SliderBtn.Parent = SliderFrame
+            local SliderBtnCorner = Instance.new("UICorner", SliderBtn)
+            SliderBtnCorner.CornerRadius = UDim.new(0, 8)
+
+            SliderBtn.MouseButton1Click:Connect(function()
+                local input = game:GetService("UserInputService").InputBegan:Wait()
+                if input.UserInputType == Enum.UserInputType.Keyboard then
+                    local num = tonumber(input.KeyCode.Name)
+                    if num and num >= min and num <= max then
+                        SliderBtn.Text = tostring(num)
+                        Label.Text = text .. ": " .. tostring(num)
+                        if callback then callback(num) end
+                    end
+                elseif input.UserInputType == Enum.UserInputType.MouseButton1 then
+                    -- ignore
+                end
+            end)
         end
         return TabObj
     end
