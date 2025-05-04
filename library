@@ -1,16 +1,19 @@
 -- ModernUILib.lua
--- A modern Roblox UI library (self-contained)
+-- A modern Roblox UI library (self-contained, advanced, dark theme)
 
 local ModernUILib = {}
 
--- Theme
+-- Modern dark theme
 ModernUILib.Theme = {
-    Primary = Color3.fromRGB(40, 40, 50),
-    Accent = Color3.fromRGB(0, 170, 255),
-    Text = Color3.fromRGB(230, 230, 240),
-    Button = Color3.fromRGB(50, 50, 60),
-    ButtonHover = Color3.fromRGB(60, 60, 80),
-    CornerRadius = UDim.new(0, 8)
+    Primary = Color3.fromRGB(15, 15, 20), -- Darker background
+    Accent = Color3.fromRGB(255, 200, 0), -- Modern yellow accent
+    Text = Color3.fromRGB(240, 240, 255),
+    Button = Color3.fromRGB(25, 25, 30),
+    ButtonHover = Color3.fromRGB(40, 40, 50),
+    Tab = Color3.fromRGB(20, 20, 25),
+    TabActive = Color3.fromRGB(255, 200, 0),
+    Dropdown = Color3.fromRGB(30, 30, 40),
+    CornerRadius = UDim.new(0, 10)
 }
 
 -- Utility: Add UICorner
@@ -24,7 +27,7 @@ end
 local function addStroke(instance, color)
     local stroke = Instance.new("UIStroke")
     stroke.Color = color or ModernUILib.Theme.Accent
-    stroke.Thickness = 1.5
+    stroke.Thickness = 2
     stroke.Parent = instance
 end
 
@@ -32,8 +35,8 @@ end
 function ModernUILib:Frame(props)
     local frame = Instance.new("Frame")
     frame.BackgroundColor3 = self.Theme.Primary
-    frame.Size = props.Size or UDim2.new(0, 300, 0, 200)
-    frame.Position = props.Position or UDim2.new(0.5, -150, 0.5, -100)
+    frame.Size = props.Size or UDim2.new(0, 500, 0, 400)
+    frame.Position = props.Position or UDim2.new(0.5, -250, 0.5, -200)
     frame.AnchorPoint = Vector2.new(0.5, 0.5)
     frame.BackgroundTransparency = 0
     frame.Parent = props.Parent
@@ -42,13 +45,24 @@ function ModernUILib:Frame(props)
     return frame
 end
 
--- Create a modern button
-function ModernUILib:Button(props)
+-- Create a modern tab bar
+function ModernUILib:TabBar(props)
+    local tabBar = Instance.new("Frame")
+    tabBar.BackgroundColor3 = self.Theme.Tab
+    tabBar.Size = UDim2.new(1, 0, 0, 40)
+    tabBar.Position = UDim2.new(0, 0, 0, 0)
+    tabBar.Parent = props.Parent
+    addCorner(tabBar, UDim.new(0, 10))
+    return tabBar
+end
+
+-- Create a modern tab button
+function ModernUILib:TabButton(props)
     local button = Instance.new("TextButton")
-    button.BackgroundColor3 = self.Theme.Button
-    button.Size = props.Size or UDim2.new(0, 120, 0, 40)
+    button.BackgroundColor3 = props.Active and self.Theme.TabActive or self.Theme.Tab
+    button.Size = props.Size or UDim2.new(0, 120, 1, 0)
     button.Position = props.Position or UDim2.new(0, 0, 0, 0)
-    button.Text = props.Text or "Button"
+    button.Text = props.Text or "Tab"
     button.TextColor3 = self.Theme.Text
     button.Font = Enum.Font.GothamSemibold
     button.TextSize = 18
@@ -56,20 +70,6 @@ function ModernUILib:Button(props)
     button.Parent = props.Parent
     addCorner(button)
     addStroke(button, self.Theme.Accent)
-
-    -- Hover effect
-    button.MouseEnter:Connect(function()
-        button.BackgroundColor3 = self.Theme.ButtonHover
-    end)
-    button.MouseLeave:Connect(function()
-        button.BackgroundColor3 = self.Theme.Button
-    end)
-
-    -- Click callback
-    if props.OnClick then
-        button.MouseButton1Click:Connect(props.OnClick)
-    end
-
     return button
 end
 
@@ -84,32 +84,109 @@ function ModernUILib:Label(props)
     label.Font = Enum.Font.Gotham
     label.TextSize = 16
     label.Parent = props.Parent
+    label.TextXAlignment = props.TextXAlignment or Enum.TextXAlignment.Left
     return label
 end
 
--- Example usage (auto-create a window with a label and button)
-do
-    local player = game:GetService("Players").LocalPlayer
-    local gui = Instance.new("ScreenGui")
-    gui.Name = "ModernUI"
-    gui.Parent = player:FindFirstChildOfClass("PlayerGui")
+-- Create a modern dropdown
+function ModernUILib:Dropdown(props)
+    local dropdown = Instance.new("Frame")
+    dropdown.BackgroundColor3 = self.Theme.Dropdown
+    dropdown.Size = props.Size or UDim2.new(0, 300, 0, 40)
+    dropdown.Position = props.Position or UDim2.new(0, 0, 0, 0)
+    dropdown.Parent = props.Parent
+    addCorner(dropdown)
+    addStroke(dropdown, self.Theme.Accent)
 
-    local frame = ModernUILib:Frame({Parent = gui})
-    ModernUILib:Label({Parent = frame, Text = "Welcome!", Position = UDim2.new(0, 0, 0, 10)})
-    ModernUILib:Button({
-        Parent = frame,
-        Text = "Click Me",
-        Position = UDim2.new(0, 10, 0, 50),
-        OnClick = function()
-            pcall(function()
-                game.StarterGui:SetCore("SendNotification", {
-                    Title = "Modern UI";
-                    Text = "Button clicked!";
-                    Duration = 2;
-                })
-            end)
+    local selected = Instance.new("TextButton")
+    selected.BackgroundTransparency = 1
+    selected.Size = UDim2.new(1, -30, 1, 0)
+    selected.Position = UDim2.new(0, 10, 0, 0)
+    selected.Text = props.Default or "Select..."
+    selected.TextColor3 = self.Theme.Text
+    selected.Font = Enum.Font.Gotham
+    selected.TextSize = 16
+    selected.TextXAlignment = Enum.TextXAlignment.Left
+    selected.Parent = dropdown
+    selected.AutoButtonColor = false
+
+    local arrow = Instance.new("TextLabel")
+    arrow.BackgroundTransparency = 1
+    arrow.Size = UDim2.new(0, 20, 1, 0)
+    arrow.Position = UDim2.new(1, -25, 0, 0)
+    arrow.Text = "▼"
+    arrow.TextColor3 = self.Theme.Text
+    arrow.Font = Enum.Font.Gotham
+    arrow.TextSize = 16
+    arrow.Parent = dropdown
+
+    local listFrame = Instance.new("Frame")
+    listFrame.BackgroundColor3 = self.Theme.Dropdown
+    listFrame.Size = UDim2.new(1, 0, 0, #props.Options * 32)
+    listFrame.Position = UDim2.new(0, 0, 1, 0)
+    listFrame.Visible = false
+    listFrame.Parent = dropdown
+    addCorner(listFrame)
+    addStroke(listFrame, self.Theme.Accent)
+
+    local layout = Instance.new("UIListLayout")
+    layout.Parent = listFrame
+    layout.FillDirection = Enum.FillDirection.Vertical
+    layout.SortOrder = Enum.SortOrder.LayoutOrder
+    layout.Padding = UDim.new(0, 2)
+
+    for i, option in ipairs(props.Options) do
+        local optBtn = Instance.new("TextButton")
+        optBtn.BackgroundColor3 = self.Theme.Button
+        optBtn.Size = UDim2.new(1, 0, 0, 30)
+        optBtn.Text = option.Name
+        optBtn.TextColor3 = self.Theme.Text
+        optBtn.Font = Enum.Font.Gotham
+        optBtn.TextSize = 16
+        optBtn.Parent = listFrame
+        optBtn.AutoButtonColor = true
+        addCorner(optBtn)
+        optBtn.MouseButton1Click:Connect(function()
+            selected.Text = option.Name
+            listFrame.Visible = false
+            if props.OnSelect then
+                props.OnSelect(option)
+            end
+        end)
+    end
+
+    selected.MouseButton1Click:Connect(function()
+        listFrame.Visible = not listFrame.Visible
+    end)
+
+    return dropdown
+end
+
+-- Create a modern toggle
+function ModernUILib:Toggle(props)
+    local toggle = Instance.new("TextButton")
+    toggle.BackgroundColor3 = self.Theme.Button
+    toggle.Size = props.Size or UDim2.new(0, 120, 0, 40)
+    toggle.Position = props.Position or UDim2.new(0, 0, 0, 0)
+    toggle.Text = (props.State and "☑ " or "☐ ") .. (props.Text or "Toggle")
+    toggle.TextColor3 = self.Theme.Text
+    toggle.Font = Enum.Font.GothamSemibold
+    toggle.TextSize = 18
+    toggle.AutoButtonColor = false
+    toggle.Parent = props.Parent
+    addCorner(toggle)
+    addStroke(toggle, self.Theme.Accent)
+
+    local state = props.State or false
+    toggle.MouseButton1Click:Connect(function()
+        state = not state
+        toggle.Text = (state and "☑ " or "☐ ") .. (props.Text or "Toggle")
+        if props.OnToggle then
+            props.OnToggle(state)
         end
-    })
+    end)
+
+    return toggle
 end
 
 return ModernUILib
