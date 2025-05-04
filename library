@@ -1,19 +1,19 @@
 -- ModernUILib.lua
--- A modern Roblox UI library (self-contained, advanced, dark theme)
+-- A modern Roblox UI library (self-contained, advanced, modern, larger, and visually improved)
 
 local ModernUILib = {}
 
--- Modern dark theme
+-- Modern, larger, and more visually appealing theme
 ModernUILib.Theme = {
-    Primary = Color3.fromRGB(15, 15, 20), -- Darker background
+    Primary = Color3.fromRGB(18, 18, 22), -- Even darker background
     Accent = Color3.fromRGB(255, 200, 0), -- Modern yellow accent
-    Text = Color3.fromRGB(240, 240, 255),
-    Button = Color3.fromRGB(25, 25, 30),
-    ButtonHover = Color3.fromRGB(40, 40, 50),
-    Tab = Color3.fromRGB(20, 20, 25),
+    Text = Color3.fromRGB(245, 245, 255),
+    Button = Color3.fromRGB(30, 30, 36),
+    ButtonHover = Color3.fromRGB(50, 50, 60),
+    Tab = Color3.fromRGB(25, 25, 30),
     TabActive = Color3.fromRGB(255, 200, 0),
-    Dropdown = Color3.fromRGB(30, 30, 40),
-    CornerRadius = UDim.new(0, 10)
+    Dropdown = Color3.fromRGB(35, 35, 45),
+    CornerRadius = UDim.new(0, 16)
 }
 
 -- Utility: Add UICorner
@@ -23,129 +23,143 @@ local function addCorner(instance, radius)
     corner.Parent = instance
 end
 
--- Utility: Add UIStroke
-local function addStroke(instance, color)
-    local stroke = Instance.new("UIStroke")
-    stroke.Color = color or ModernUILib.Theme.Accent
-    stroke.Thickness = 2
-    stroke.Parent = instance
+-- Utility: Add DropShadow (Frame only)
+local function addDropShadow(frame)
+    local shadow = Instance.new("ImageLabel")
+    shadow.Name = "DropShadow"
+    shadow.BackgroundTransparency = 1
+    shadow.Image = "rbxassetid://1316045217" -- Roblox drop shadow asset
+    shadow.ImageTransparency = 0.6
+    shadow.ScaleType = Enum.ScaleType.Slice
+    shadow.SliceCenter = Rect.new(10, 10, 118, 118)
+    shadow.Size = UDim2.new(1, 40, 1, 40)
+    shadow.Position = UDim2.new(0, -20, 0, -20)
+    shadow.ZIndex = 0
+    shadow.Parent = frame
 end
 
--- Create a modern frame
+-- No stroke for a clean look
+local function addStroke(instance, color)
+    -- No stroke
+end
+
+-- Create a modern, larger frame with drop shadow
 function ModernUILib:Frame(props)
     local frame = Instance.new("Frame")
     frame.BackgroundColor3 = self.Theme.Primary
-    frame.Size = props.Size or UDim2.new(0, 500, 0, 400)
-    frame.Position = props.Position or UDim2.new(0.5, -250, 0.5, -200)
+    frame.Size = props.Size or UDim2.new(0, 650, 0, 500)
+    frame.Position = props.Position or UDim2.new(0.5, -325, 0.5, -250)
     frame.AnchorPoint = Vector2.new(0.5, 0.5)
     frame.BackgroundTransparency = 0
     frame.Parent = props.Parent
+    frame.ZIndex = 2
     addCorner(frame)
-    addStroke(frame)
+    addDropShadow(frame)
     return frame
 end
 
--- Create a modern tab bar
 function ModernUILib:TabBar(props)
     local tabBar = Instance.new("Frame")
     tabBar.BackgroundColor3 = self.Theme.Tab
-    tabBar.Size = UDim2.new(1, 0, 0, 40)
+    tabBar.Size = UDim2.new(1, 0, 0, 48)
     tabBar.Position = UDim2.new(0, 0, 0, 0)
     tabBar.Parent = props.Parent
-    addCorner(tabBar, UDim.new(0, 10))
+    tabBar.ZIndex = 3
+    addCorner(tabBar, UDim.new(0, 16))
     return tabBar
 end
 
--- Create a modern tab button
 function ModernUILib:TabButton(props)
     local button = Instance.new("TextButton")
     button.BackgroundColor3 = props.Active and self.Theme.TabActive or self.Theme.Tab
-    button.Size = props.Size or UDim2.new(0, 120, 1, 0)
+    button.Size = props.Size or UDim2.new(0, 140, 1, 0)
     button.Position = props.Position or UDim2.new(0, 0, 0, 0)
     button.Text = props.Text or "Tab"
     button.TextColor3 = self.Theme.Text
     button.Font = Enum.Font.GothamSemibold
-    button.TextSize = 18
+    button.TextSize = 20
     button.AutoButtonColor = false
     button.Parent = props.Parent
-    addCorner(button)
-    addStroke(button, self.Theme.Accent)
+    button.ZIndex = 4
+    addCorner(button, UDim.new(0, 12))
     return button
 end
 
--- Create a modern label
 function ModernUILib:Label(props)
     local label = Instance.new("TextLabel")
     label.BackgroundTransparency = 1
-    label.Size = props.Size or UDim2.new(1, 0, 0, 30)
+    label.Size = props.Size or UDim2.new(1, 0, 0, 36)
     label.Position = props.Position or UDim2.new(0, 0, 0, 0)
     label.Text = props.Text or "Label"
     label.TextColor3 = self.Theme.Text
     label.Font = Enum.Font.Gotham
-    label.TextSize = 16
+    label.TextSize = 18
     label.Parent = props.Parent
     label.TextXAlignment = props.TextXAlignment or Enum.TextXAlignment.Left
+    label.ZIndex = 5
     return label
 end
 
--- Create a modern dropdown
 function ModernUILib:Dropdown(props)
     local dropdown = Instance.new("Frame")
     dropdown.BackgroundColor3 = self.Theme.Dropdown
-    dropdown.Size = props.Size or UDim2.new(0, 300, 0, 40)
+    dropdown.Size = props.Size or UDim2.new(0, 340, 0, 48)
     dropdown.Position = props.Position or UDim2.new(0, 0, 0, 0)
     dropdown.Parent = props.Parent
-    addCorner(dropdown)
-    addStroke(dropdown, self.Theme.Accent)
+    dropdown.ZIndex = 6
+    addCorner(dropdown, UDim.new(0, 12))
 
     local selected = Instance.new("TextButton")
     selected.BackgroundTransparency = 1
-    selected.Size = UDim2.new(1, -30, 1, 0)
-    selected.Position = UDim2.new(0, 10, 0, 0)
+    selected.Size = UDim2.new(1, -36, 1, 0)
+    selected.Position = UDim2.new(0, 16, 0, 0)
     selected.Text = props.Default or "Select..."
     selected.TextColor3 = self.Theme.Text
     selected.Font = Enum.Font.Gotham
-    selected.TextSize = 16
+    selected.TextSize = 18
     selected.TextXAlignment = Enum.TextXAlignment.Left
     selected.Parent = dropdown
     selected.AutoButtonColor = false
+    selected.ZIndex = 7
 
     local arrow = Instance.new("TextLabel")
     arrow.BackgroundTransparency = 1
-    arrow.Size = UDim2.new(0, 20, 1, 0)
-    arrow.Position = UDim2.new(1, -25, 0, 0)
+    arrow.Size = UDim2.new(0, 24, 1, 0)
+    arrow.Position = UDim2.new(1, -28, 0, 0)
     arrow.Text = "▼"
     arrow.TextColor3 = self.Theme.Text
     arrow.Font = Enum.Font.Gotham
-    arrow.TextSize = 16
+    arrow.TextSize = 18
     arrow.Parent = dropdown
+    arrow.ZIndex = 7
 
     local listFrame = Instance.new("Frame")
     listFrame.BackgroundColor3 = self.Theme.Dropdown
-    listFrame.Size = UDim2.new(1, 0, 0, #props.Options * 32)
+    listFrame.Size = UDim2.new(1, 0, 0, #props.Options * 40)
     listFrame.Position = UDim2.new(0, 0, 1, 0)
     listFrame.Visible = false
     listFrame.Parent = dropdown
-    addCorner(listFrame)
-    addStroke(listFrame, self.Theme.Accent)
+    listFrame.ZIndex = 8
+    addCorner(listFrame, UDim.new(0, 10))
 
     local layout = Instance.new("UIListLayout")
     layout.Parent = listFrame
     layout.FillDirection = Enum.FillDirection.Vertical
     layout.SortOrder = Enum.SortOrder.LayoutOrder
-    layout.Padding = UDim.new(0, 2)
+    layout.Padding = UDim.new(0, 4)
 
     for i, option in ipairs(props.Options) do
         local optBtn = Instance.new("TextButton")
         optBtn.BackgroundColor3 = self.Theme.Button
-        optBtn.Size = UDim2.new(1, 0, 0, 30)
+        optBtn.Size = UDim2.new(1, 0, 0, 36)
         optBtn.Text = option.Name
         optBtn.TextColor3 = self.Theme.Text
         optBtn.Font = Enum.Font.Gotham
-        optBtn.TextSize = 16
+        optBtn.TextSize = 18
         optBtn.Parent = listFrame
         optBtn.AutoButtonColor = true
-        addCorner(optBtn)
+        optBtn.ZIndex = 9
+        addCorner(optBtn, UDim.new(0, 8))
         optBtn.MouseButton1Click:Connect(function()
             selected.Text = option.Name
             listFrame.Visible = false
@@ -162,20 +176,19 @@ function ModernUILib:Dropdown(props)
     return dropdown
 end
 
--- Create a modern toggle
 function ModernUILib:Toggle(props)
     local toggle = Instance.new("TextButton")
     toggle.BackgroundColor3 = self.Theme.Button
-    toggle.Size = props.Size or UDim2.new(0, 120, 0, 40)
+    toggle.Size = props.Size or UDim2.new(0, 160, 0, 48)
     toggle.Position = props.Position or UDim2.new(0, 0, 0, 0)
     toggle.Text = (props.State and "☑ " or "☐ ") .. (props.Text or "Toggle")
     toggle.TextColor3 = self.Theme.Text
     toggle.Font = Enum.Font.GothamSemibold
-    toggle.TextSize = 18
+    toggle.TextSize = 20
     toggle.AutoButtonColor = false
     toggle.Parent = props.Parent
-    addCorner(toggle)
-    addStroke(toggle, self.Theme.Accent)
+    toggle.ZIndex = 10
+    addCorner(toggle, UDim.new(0, 10))
 
     local state = props.State or false
     toggle.MouseButton1Click:Connect(function()
