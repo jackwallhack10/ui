@@ -1,224 +1,115 @@
 -- ModernUILib.lua
--- A modern UI library for Roblox executors with keybind and slider support
+-- A modern Roblox UI library (self-contained)
+
 local ModernUILib = {}
-ModernUILib.__index = ModernUILib
 
-function ModernUILib:CreateWindow(title)
-    local ScreenGui = Instance.new("ScreenGui")
-    ScreenGui.Name = "ModernUI"
-    ScreenGui.Parent = game.CoreGui
+-- Theme
+ModernUILib.Theme = {
+    Primary = Color3.fromRGB(40, 40, 50),
+    Accent = Color3.fromRGB(0, 170, 255),
+    Text = Color3.fromRGB(230, 230, 240),
+    Button = Color3.fromRGB(50, 50, 60),
+    ButtonHover = Color3.fromRGB(60, 60, 80),
+    CornerRadius = UDim.new(0, 8)
+}
 
-    local Main = Instance.new("Frame")
-    Main.Size = UDim2.new(0, 420, 0, 340)
-    Main.Position = UDim2.new(0.5, -210, 0.5, -170)
-    Main.BackgroundColor3 = Color3.fromRGB(24, 24, 32)
-    Main.BorderSizePixel = 0
-    Main.AnchorPoint = Vector2.new(0.5, 0.5)
-    Main.Active = true
-    Main.Draggable = true
-    Main.Parent = ScreenGui
-
-    local UICorner = Instance.new("UICorner", Main)
-    UICorner.CornerRadius = UDim.new(0, 14)
-
-    local Title = Instance.new("TextLabel")
-    Title.Size = UDim2.new(1, 0, 0, 48)
-    Title.BackgroundTransparency = 1
-    Title.Text = title or "Modern UI"
-    Title.Font = Enum.Font.GothamBold
-    Title.TextSize = 26
-    Title.TextColor3 = Color3.fromRGB(0, 200, 255)
-    Title.Parent = Main
-
-    local TabHolder = Instance.new("Frame")
-    TabHolder.Size = UDim2.new(1, 0, 0, 44)
-    TabHolder.Position = UDim2.new(0, 0, 0, 48)
-    TabHolder.BackgroundTransparency = 1
-    TabHolder.Parent = Main
-
-    local TabLayout = Instance.new("UIListLayout", TabHolder)
-    TabLayout.FillDirection = Enum.FillDirection.Horizontal
-    TabLayout.SortOrder = Enum.SortOrder.LayoutOrder
-    TabLayout.Padding = UDim.new(0, 10)
-
-    local ContentFrame = Instance.new("Frame")
-    ContentFrame.Size = UDim2.new(1, 0, 1, -92)
-    ContentFrame.Position = UDim2.new(0, 0, 0, 92)
-    ContentFrame.BackgroundTransparency = 1
-    ContentFrame.ClipsDescendants = true
-    ContentFrame.Parent = Main
-
-    local Tabs = {}
-
-    function ModernUILib:CreateTab(tabName)
-        local TabBtn = Instance.new("TextButton")
-        TabBtn.Size = UDim2.new(0, 120, 1, 0)
-        TabBtn.BackgroundColor3 = Color3.fromRGB(32, 32, 48)
-        TabBtn.Text = tabName
-        TabBtn.Font = Enum.Font.Gotham
-        TabBtn.TextSize = 20
-        TabBtn.TextColor3 = Color3.fromRGB(0,200,255)
-        TabBtn.AutoButtonColor = false
-        TabBtn.Parent = TabHolder
-
-        local TabUICorner = Instance.new("UICorner", TabBtn)
-        TabUICorner.CornerRadius = UDim.new(0, 10)
-
-        local TabContent = Instance.new("Frame")
-        TabContent.Size = UDim2.new(1, 0, 1, 0)
-        TabContent.BackgroundTransparency = 1
-        TabContent.Visible = false
-        TabContent.Parent = ContentFrame
-
-        Tabs[tabName] = TabContent
-
-        TabBtn.MouseButton1Click:Connect(function()
-            for _, v in pairs(ContentFrame:GetChildren()) do
-                if v:IsA("Frame") then v.Visible = false end
-            end
-            TabContent.Visible = true
-        end)
-
-        if #ContentFrame:GetChildren() == 1 then
-            TabContent.Visible = true
-        end
-
-        local TabObj = {}
-        function TabObj:AddToggle(text, default, callback)
-            local Toggle = Instance.new("TextButton")
-            Toggle.Size = UDim2.new(1, -24, 0, 40)
-            Toggle.Position = UDim2.new(0, 12, 0, 12 + (#TabContent:GetChildren()-1)*52)
-            Toggle.BackgroundColor3 = Color3.fromRGB(32, 32, 48)
-            Toggle.Text = ""
-            Toggle.AutoButtonColor = false
-            Toggle.Parent = TabContent
-
-            local ToggleUICorner = Instance.new("UICorner", Toggle)
-            ToggleUICorner.CornerRadius = UDim.new(0, 10)
-
-            local Label = Instance.new("TextLabel")
-            Label.Size = UDim2.new(1, -60, 1, 0)
-            Label.Position = UDim2.new(0, 14, 0, 0)
-            Label.BackgroundTransparency = 1
-            Label.Text = text
-            Label.Font = Enum.Font.Gotham
-            Label.TextSize = 20
-            Label.TextColor3 = Color3.fromRGB(200,220,255)
-            Label.TextXAlignment = Enum.TextXAlignment.Left
-            Label.Parent = Toggle
-
-            local State = Instance.new("Frame")
-            State.Size = UDim2.new(0, 32, 0, 32)
-            State.Position = UDim2.new(1, -46, 0.5, -16)
-            State.BackgroundColor3 = default and Color3.fromRGB(0, 200, 255) or Color3.fromRGB(60, 60, 80)
-            State.Parent = Toggle
-
-            local StateCorner = Instance.new("UICorner", State)
-            StateCorner.CornerRadius = UDim.new(1, 0)
-
-            local On = default
-            Toggle.MouseButton1Click:Connect(function()
-                On = not On
-                State.BackgroundColor3 = On and Color3.fromRGB(0, 200, 255) or Color3.fromRGB(60, 60, 80)
-                if callback then callback(On) end
-            end)
-            if callback then callback(On) end
-        end
-        function TabObj:AddKeybind(text, defaultKey, callback)
-            local KeybindFrame = Instance.new("Frame")
-            KeybindFrame.Size = UDim2.new(1, -24, 0, 40)
-            KeybindFrame.Position = UDim2.new(0, 12, 0, 12 + (#TabContent:GetChildren()-1)*52)
-            KeybindFrame.BackgroundColor3 = Color3.fromRGB(32, 32, 48)
-            KeybindFrame.Parent = TabContent
-            local KeybindCorner = Instance.new("UICorner", KeybindFrame)
-            KeybindCorner.CornerRadius = UDim.new(0, 10)
-
-            local Label = Instance.new("TextLabel")
-            Label.Size = UDim2.new(1, -100, 1, 0)
-            Label.Position = UDim2.new(0, 14, 0, 0)
-            Label.BackgroundTransparency = 1
-            Label.Text = text
-            Label.Font = Enum.Font.Gotham
-            Label.TextSize = 20
-            Label.TextColor3 = Color3.fromRGB(200,220,255)
-            Label.TextXAlignment = Enum.TextXAlignment.Left
-            Label.Parent = KeybindFrame
-
-            local KeyBtn = Instance.new("TextButton")
-            KeyBtn.Size = UDim2.new(0, 80, 0, 28)
-            KeyBtn.Position = UDim2.new(1, -90, 0.5, -14)
-            KeyBtn.BackgroundColor3 = Color3.fromRGB(0, 200, 255)
-            KeyBtn.Text = tostring(defaultKey.Name)
-            KeyBtn.Font = Enum.Font.Gotham
-            KeyBtn.TextSize = 18
-            KeyBtn.TextColor3 = Color3.fromRGB(24,24,32)
-            KeyBtn.Parent = KeybindFrame
-            local KeyBtnCorner = Instance.new("UICorner", KeyBtn)
-            KeyBtnCorner.CornerRadius = UDim.new(0, 8)
-
-            local waiting = false
-            KeyBtn.MouseButton1Click:Connect(function()
-                KeyBtn.Text = "..."
-                waiting = true
-            end)
-            game:GetService("UserInputService").InputBegan:Connect(function(input, processed)
-                if waiting and not processed and input.UserInputType == Enum.UserInputType.Keyboard then
-                    waiting = false
-                    KeyBtn.Text = tostring(input.KeyCode.Name)
-                    if callback then callback(input.KeyCode) end
-                end
-            end)
-        end
-        function TabObj:AddSlider(text, min, max, default, callback)
-            local SliderFrame = Instance.new("Frame")
-            SliderFrame.Size = UDim2.new(1, -24, 0, 40)
-            SliderFrame.Position = UDim2.new(0, 12, 0, 12 + (#TabContent:GetChildren()-1)*52)
-            SliderFrame.BackgroundColor3 = Color3.fromRGB(32, 32, 48)
-            SliderFrame.Parent = TabContent
-            local SliderCorner = Instance.new("UICorner", SliderFrame)
-            SliderCorner.CornerRadius = UDim.new(0, 10)
-
-            local Label = Instance.new("TextLabel")
-            Label.Size = UDim2.new(1, -100, 1, 0)
-            Label.Position = UDim2.new(0, 14, 0, 0)
-            Label.BackgroundTransparency = 1
-            Label.Text = text .. ": " .. tostring(default)
-            Label.Font = Enum.Font.Gotham
-            Label.TextSize = 20
-            Label.TextColor3 = Color3.fromRGB(200,220,255)
-            Label.TextXAlignment = Enum.TextXAlignment.Left
-            Label.Parent = SliderFrame
-
-            local SliderBtn = Instance.new("TextButton")
-            SliderBtn.Size = UDim2.new(0, 80, 0, 28)
-            SliderBtn.Position = UDim2.new(1, -90, 0.5, -14)
-            SliderBtn.BackgroundColor3 = Color3.fromRGB(0, 200, 255)
-            SliderBtn.Text = tostring(default)
-            SliderBtn.Font = Enum.Font.Gotham
-            SliderBtn.TextSize = 18
-            SliderBtn.TextColor3 = Color3.fromRGB(24,24,32)
-            SliderBtn.Parent = SliderFrame
-            local SliderBtnCorner = Instance.new("UICorner", SliderBtn)
-            SliderBtnCorner.CornerRadius = UDim.new(0, 8)
-
-            SliderBtn.MouseButton1Click:Connect(function()
-                local input = game:GetService("UserInputService").InputBegan:Wait()
-                if input.UserInputType == Enum.UserInputType.Keyboard then
-                    local num = tonumber(input.KeyCode.Name)
-                    if num and num >= min and num <= max then
-                        SliderBtn.Text = tostring(num)
-                        Label.Text = text .. ": " .. tostring(num)
-                        if callback then callback(num) end
-                    end
-                elseif input.UserInputType == Enum.UserInputType.MouseButton1 then
-                    -- ignore
-                end
-            end)
-        end
-        return TabObj
-    end
-    ModernUILib.AddTab = ModernUILib.CreateTab -- Alias for compatibility
-    return ModernUILib
+-- Utility: Add UICorner
+local function addCorner(instance, radius)
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = radius or ModernUILib.Theme.CornerRadius
+    corner.Parent = instance
 end
 
-return ModernUILib 
+-- Utility: Add UIStroke
+local function addStroke(instance, color)
+    local stroke = Instance.new("UIStroke")
+    stroke.Color = color or ModernUILib.Theme.Accent
+    stroke.Thickness = 1.5
+    stroke.Parent = instance
+end
+
+-- Create a modern frame
+function ModernUILib:Frame(props)
+    local frame = Instance.new("Frame")
+    frame.BackgroundColor3 = self.Theme.Primary
+    frame.Size = props.Size or UDim2.new(0, 300, 0, 200)
+    frame.Position = props.Position or UDim2.new(0.5, -150, 0.5, -100)
+    frame.AnchorPoint = Vector2.new(0.5, 0.5)
+    frame.BackgroundTransparency = 0
+    frame.Parent = props.Parent
+    addCorner(frame)
+    addStroke(frame)
+    return frame
+end
+
+-- Create a modern button
+function ModernUILib:Button(props)
+    local button = Instance.new("TextButton")
+    button.BackgroundColor3 = self.Theme.Button
+    button.Size = props.Size or UDim2.new(0, 120, 0, 40)
+    button.Position = props.Position or UDim2.new(0, 0, 0, 0)
+    button.Text = props.Text or "Button"
+    button.TextColor3 = self.Theme.Text
+    button.Font = Enum.Font.GothamSemibold
+    button.TextSize = 18
+    button.AutoButtonColor = false
+    button.Parent = props.Parent
+    addCorner(button)
+    addStroke(button, self.Theme.Accent)
+
+    -- Hover effect
+    button.MouseEnter:Connect(function()
+        button.BackgroundColor3 = self.Theme.ButtonHover
+    end)
+    button.MouseLeave:Connect(function()
+        button.BackgroundColor3 = self.Theme.Button
+    end)
+
+    -- Click callback
+    if props.OnClick then
+        button.MouseButton1Click:Connect(props.OnClick)
+    end
+
+    return button
+end
+
+-- Create a modern label
+function ModernUILib:Label(props)
+    local label = Instance.new("TextLabel")
+    label.BackgroundTransparency = 1
+    label.Size = props.Size or UDim2.new(1, 0, 0, 30)
+    label.Position = props.Position or UDim2.new(0, 0, 0, 0)
+    label.Text = props.Text or "Label"
+    label.TextColor3 = self.Theme.Text
+    label.Font = Enum.Font.Gotham
+    label.TextSize = 16
+    label.Parent = props.Parent
+    return label
+end
+
+-- Example usage (auto-create a window with a label and button)
+do
+    local player = game:GetService("Players").LocalPlayer
+    local gui = Instance.new("ScreenGui")
+    gui.Name = "ModernUI"
+    gui.Parent = player:FindFirstChildOfClass("PlayerGui")
+
+    local frame = ModernUILib:Frame({Parent = gui})
+    ModernUILib:Label({Parent = frame, Text = "Welcome!", Position = UDim2.new(0, 0, 0, 10)})
+    ModernUILib:Button({
+        Parent = frame,
+        Text = "Click Me",
+        Position = UDim2.new(0, 10, 0, 50),
+        OnClick = function()
+            pcall(function()
+                game.StarterGui:SetCore("SendNotification", {
+                    Title = "Modern UI";
+                    Text = "Button clicked!";
+                    Duration = 2;
+                })
+            end)
+        end
+    })
+end
+
+return ModernUILib
