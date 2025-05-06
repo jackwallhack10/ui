@@ -10,6 +10,10 @@ window:AddToggle({Text = 'Enable', Callback = function(state) print('Toggled:', 
 window:AddDropdown({Text = 'Choose', List = {'A', 'B'}, Callback = function(choice) print('Selected:', choice) end})
 ]]
 
+local Players = game:GetService('Players')
+local LocalPlayer = Players.LocalPlayer
+local PlayerGui = LocalPlayer:FindFirstChildOfClass('PlayerGui') or Instance.new('PlayerGui', LocalPlayer)
+
 local CustomUI = {}
 CustomUI.__index = CustomUI
 
@@ -17,23 +21,125 @@ function CustomUI:CreateWindow(options)
     local self = setmetatable({}, CustomUI)
     self.Title = options.Title or 'Window'
     self.Elements = {}
-    print('Created window:', self.Title)
+
+    -- Create ScreenGui and main Frame
+    self.ScreenGui = Instance.new('ScreenGui')
+    self.ScreenGui.Name = 'CustomUI_' .. self.Title:gsub(' ', '_')
+    self.ScreenGui.ResetOnSpawn = false
+    self.ScreenGui.Parent = PlayerGui
+
+    self.Frame = Instance.new('Frame')
+    self.Frame.Name = 'MainFrame'
+    self.Frame.Size = UDim2.new(0, 300, 0, 40)
+    self.Frame.Position = UDim2.new(0, 100, 0, 100)
+    self.Frame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    self.Frame.BorderSizePixel = 0
+    self.Frame.Parent = self.ScreenGui
+
+    local titleLabel = Instance.new('TextLabel')
+    titleLabel.Text = self.Title
+    titleLabel.Size = UDim2.new(1, 0, 0, 30)
+    titleLabel.BackgroundTransparency = 1
+    titleLabel.TextColor3 = Color3.fromRGB(255,255,255)
+    titleLabel.Font = Enum.Font.SourceSansBold
+    titleLabel.TextSize = 20
+    titleLabel.Parent = self.Frame
+
+    self.NextY = 35
     return self
 end
 
 function CustomUI:AddButton(options)
-    print('Added button:', options.Text)
-    self.Elements[#self.Elements+1] = {Type = 'Button', Text = options.Text, Callback = options.Callback}
+    local button = Instance.new('TextButton')
+    button.Text = options.Text
+    button.Size = UDim2.new(1, -10, 0, 30)
+    button.Position = UDim2.new(0, 5, 0, self.NextY)
+    button.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+    button.TextColor3 = Color3.fromRGB(255,255,255)
+    button.Font = Enum.Font.SourceSans
+    button.TextSize = 18
+    button.Parent = self.Frame
+    button.MouseButton1Click:Connect(function()
+        if options.Callback then options.Callback() end
+    end)
+    self.NextY = self.NextY + 35
+    self.Elements[#self.Elements+1] = button
 end
 
 function CustomUI:AddToggle(options)
-    print('Added toggle:', options.Text)
-    self.Elements[#self.Elements+1] = {Type = 'Toggle', Text = options.Text, State = false, Callback = options.Callback}
+    local toggle = Instance.new('TextButton')
+    toggle.Text = '[ ] ' .. options.Text
+    toggle.Size = UDim2.new(1, -10, 0, 30)
+    toggle.Position = UDim2.new(0, 5, 0, self.NextY)
+    toggle.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+    toggle.TextColor3 = Color3.fromRGB(255,255,255)
+    toggle.Font = Enum.Font.SourceSans
+    toggle.TextSize = 18
+    toggle.Parent = self.Frame
+    local state = false
+    toggle.MouseButton1Click:Connect(function()
+        state = not state
+        toggle.Text = (state and '[X] ' or '[ ] ') .. options.Text
+        if options.Callback then options.Callback(state) end
+    end)
+    self.NextY = self.NextY + 35
+    self.Elements[#self.Elements+1] = toggle
 end
 
 function CustomUI:AddDropdown(options)
-    print('Added dropdown:', options.Text, 'Options:', table.concat(options.List, ', '))
-    self.Elements[#self.Elements+1] = {Type = 'Dropdown', Text = options.Text, List = options.List, Callback = options.Callback}
+    local label = Instance.new('TextLabel')
+    label.Text = options.Text
+    label.Size = UDim2.new(1, -10, 0, 20)
+    label.Position = UDim2.new(0, 5, 0, self.NextY)
+    label.BackgroundTransparency = 1
+    label.TextColor3 = Color3.fromRGB(255,255,255)
+    label.Font = Enum.Font.SourceSans
+    label.TextSize = 16
+    label.Parent = self.Frame
+    self.NextY = self.NextY + 20
+
+    local dropdown = Instance.new('TextButton')
+    dropdown.Text = 'Select...'
+    dropdown.Size = UDim2.new(1, -10, 0, 30)
+    dropdown.Position = UDim2.new(0, 5, 0, self.NextY)
+    dropdown.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+    dropdown.TextColor3 = Color3.fromRGB(255,255,255)
+    dropdown.Font = Enum.Font.SourceSans
+    dropdown.TextSize = 18
+    dropdown.Parent = self.Frame
+    self.NextY = self.NextY + 35
+
+    local open = false
+    local optionButtons = {}
+    dropdown.MouseButton1Click:Connect(function()
+        open = not open
+        for _, btn in ipairs(optionButtons) do
+            btn.Visible = open
+        end
+    end)
+    for i, opt in ipairs(options.List) do
+        local optBtn = Instance.new('TextButton')
+        optBtn.Text = tostring(opt)
+        optBtn.Size = UDim2.new(1, -20, 0, 25)
+        optBtn.Position = UDim2.new(0, 15, 0, self.NextY + (i-1)*25)
+        optBtn.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
+        optBtn.TextColor3 = Color3.fromRGB(255,255,255)
+        optBtn.Font = Enum.Font.SourceSans
+        optBtn.TextSize = 16
+        optBtn.Visible = false
+        optBtn.Parent = self.Frame
+        optBtn.MouseButton1Click:Connect(function()
+            dropdown.Text = tostring(opt)
+            open = false
+            for _, btn in ipairs(optionButtons) do
+                btn.Visible = false
+            end
+            if options.Callback then options.Callback(opt) end
+        end)
+        table.insert(optionButtons, optBtn)
+    end
+    self.NextY = self.NextY + #options.List * 25
+    self.Elements[#self.Elements+1] = dropdown
 end
 
 return setmetatable({CreateWindow = CustomUI.CreateWindow}, CustomUI) 
