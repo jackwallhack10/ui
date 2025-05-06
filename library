@@ -3,7 +3,7 @@ CustomUILibrary.lua
 A simple, extensible custom UI library for Roblox
 
 Usage Example:
-local CustomUI = loadfile('CustomUILibrary.lua')()
+local CustomUI = loadstring(game:HttpGet('YOUR_RAW_URL_HERE'))()
 local window = CustomUI:CreateWindow({Title = 'My Window'})
 window:AddButton({Text = 'Click Me', Callback = function() print('Clicked!') end})
 window:AddToggle({Text = 'Enable', Callback = function(state) print('Toggled:', state) end})
