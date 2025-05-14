@@ -54,286 +54,69 @@ function FluentUI:Create()
 
     -- Main Window
     local main = Instance.new("Frame")
-    main.Size = UDim2.new(0, 540, 0, 520)
-    main.Position = UDim2.new(0.5, -270, 0.5, -260)
-    main.BackgroundColor3 = Color3.fromRGB(18, 20, 30)
-    main.BackgroundTransparency = 0.18
+    main.Size = UDim2.new(0, 700, 0, 420)
+    main.Position = UDim2.new(0.5, -350, 0.5, -210)
+    main.BackgroundColor3 = Color3.fromRGB(36, 37, 39)
+    main.BackgroundTransparency = 0
     main.ZIndex = 2
     main.Parent = gui
-    createUICorner(main, 22)
+    createUICorner(main, 18)
     createUIStroke(main, Color3.fromRGB(40, 40, 60), 2)
     createShadow(main, 1)
     createGlass(main)
 
-    -- Sidebar
-    local sidebar = Instance.new("Frame")
-    sidebar.Size = UDim2.new(0, 90, 1, 0)
-    sidebar.Position = UDim2.new(0, 0, 0, 0)
-    sidebar.BackgroundColor3 = Color3.fromRGB(15, 16, 24)
-    sidebar.BackgroundTransparency = 0.25
-    sidebar.ZIndex = 3
-    sidebar.Parent = main
-    createUICorner(sidebar, 22)
-    createUIStroke(sidebar, Color3.fromRGB(40, 40, 60), 1)
-
-    -- Sidebar Close Button
-    local closeBtn = Instance.new("TextButton")
-    closeBtn.Size = UDim2.new(0, 32, 0, 32)
-    closeBtn.Position = UDim2.new(0, 10, 0, 10)
-    closeBtn.BackgroundTransparency = 1
-    closeBtn.Text = "✕"
-    closeBtn.TextColor3 = Color3.fromRGB(220, 220, 230)
-    closeBtn.Font = Enum.Font.GothamBold
-    closeBtn.TextSize = 22
-    closeBtn.ZIndex = 5
-    closeBtn.Parent = sidebar
-    closeBtn.MouseButton1Click:Connect(function()
-        gui:Destroy()
-    end)
-
-    -- Sidebar Navigation
-    local function addSidebarButton(icon, y, text, selected)
-        local btn = Instance.new("TextButton")
-        btn.Size = UDim2.new(1, -20, 0, 36)
-        btn.Position = UDim2.new(0, 10, 0, y)
-        btn.BackgroundColor3 = selected and Color3.fromRGB(30, 60, 180) or Color3.fromRGB(0,0,0)
-        btn.BackgroundTransparency = selected and 0.7 or 1
-        btn.Text = ""
-        btn.ZIndex = 4
-        btn.Parent = sidebar
-        local img = Instance.new("ImageLabel")
-        img.Size = UDim2.new(0, 22, 0, 22)
-        img.Position = UDim2.new(0, 4, 0.5, -11)
-        img.BackgroundTransparency = 1
-        img.Image = icon
-        img.ImageColor3 = selected and Color3.fromRGB(80, 180, 255) or Color3.fromRGB(180, 180, 200)
-        img.ZIndex = 5
-        img.Parent = btn
-        local lbl = Instance.new("TextLabel")
-        lbl.Size = UDim2.new(1, -36, 1, 0)
-        lbl.Position = UDim2.new(0, 32, 0, 0)
-        lbl.BackgroundTransparency = 1
-        lbl.Text = text
-        lbl.TextColor3 = selected and Color3.fromRGB(80, 180, 255) or Color3.fromRGB(180, 180, 200)
-        lbl.Font = Enum.Font.Gotham
-        lbl.TextSize = 16
-        lbl.TextXAlignment = Enum.TextXAlignment.Left
-        lbl.ZIndex = 5
-        lbl.Parent = btn
-        return btn
-    end
-    addSidebarButton("rbxassetid://6031094678", 60, "Main", true)
-    addSidebarButton("rbxassetid://6031094679", 110, "Settings", false)
-
-    -- Top Bar
-    local topbar = Instance.new("Frame")
-    topbar.Size = UDim2.new(1, -90, 0, 38)
-    topbar.Position = UDim2.new(0, 90, 0, 0)
-    topbar.BackgroundColor3 = Color3.fromRGB(18, 20, 30)
-    topbar.BackgroundTransparency = 1
-    topbar.ZIndex = 4
-    topbar.Parent = main
-
+    -- Title (centered at the top)
     local title = Instance.new("TextLabel")
-    title.Size = UDim2.new(1, 0, 1, 0)
+    title.Size = UDim2.new(1, 0, 0, 40)
     title.Position = UDim2.new(0, 0, 0, 0)
     title.BackgroundTransparency = 1
-    title.Text = "Fluent 1.1.0 by dawid"
-    title.TextColor3 = Color3.fromRGB(220, 220, 230)
-    title.Font = Enum.Font.GothamSemibold
-    title.TextSize = 16
-    title.TextXAlignment = Enum.TextXAlignment.Left
+    title.Text = "GhostWare"
+    title.TextColor3 = Color3.fromRGB(255, 255, 255)
+    title.Font = Enum.Font.GothamBold
+    title.TextSize = 28
+    title.TextXAlignment = Enum.TextXAlignment.Center
+    title.TextYAlignment = Enum.TextYAlignment.Center
     title.ZIndex = 5
-    title.Parent = topbar
+    title.Parent = main
 
-    -- Main Content
-    local content = Instance.new("Frame")
-    content.Size = UDim2.new(1, -110, 1, -60)
-    content.Position = UDim2.new(0, 100, 0, 50)
-    content.BackgroundTransparency = 1
-    content.ZIndex = 5
-    content.Parent = main
+    -- Sidebar
+    local sidebar = Instance.new("Frame")
+    sidebar.Size = UDim2.new(0, 180, 1, -20)
+    sidebar.Position = UDim2.new(0, 10, 0, 50)
+    sidebar.BackgroundColor3 = Color3.fromRGB(44, 45, 48)
+    sidebar.BackgroundTransparency = 0
+    sidebar.ZIndex = 3
+    sidebar.Parent = main
+    createUICorner(sidebar, 14)
+    createUIStroke(sidebar, Color3.fromRGB(40, 40, 60), 1)
 
-    local mainTitle = Instance.new("TextLabel")
-    mainTitle.Size = UDim2.new(1, 0, 0, 40)
-    mainTitle.Position = UDim2.new(0, 0, 0, 0)
-    mainTitle.BackgroundTransparency = 1
-    mainTitle.Text = "Main"
-    mainTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
-    mainTitle.Font = Enum.Font.GothamBlack
-    mainTitle.TextSize = 32
-    mainTitle.TextXAlignment = Enum.TextXAlignment.Left
-    mainTitle.ZIndex = 6
-    mainTitle.Parent = content
-
-    -- Section Helper
-    local function addSection(y, label, desc)
-        local section = Instance.new("Frame")
-        section.Size = UDim2.new(1, 0, 0, 56)
-        section.Position = UDim2.new(0, 0, 0, y)
-        section.BackgroundColor3 = Color3.fromRGB(28, 30, 40)
-        section.BackgroundTransparency = 0.18
-        section.ZIndex = 7
-        section.Parent = content
-        createUICorner(section, 12)
-        createUIStroke(section, Color3.fromRGB(60, 60, 80), 1)
-        local lbl = Instance.new("TextLabel")
-        lbl.Size = UDim2.new(1, -20, 0, 22)
-        lbl.Position = UDim2.new(0, 12, 0, 4)
-        lbl.BackgroundTransparency = 1
-        lbl.Text = label
-        lbl.TextColor3 = Color3.fromRGB(255, 255, 255)
-        lbl.Font = Enum.Font.GothamSemibold
-        lbl.TextSize = 18
-        lbl.TextXAlignment = Enum.TextXAlignment.Left
-        lbl.ZIndex = 8
-        lbl.Parent = section
-        local descLbl = Instance.new("TextLabel")
-        descLbl.Size = UDim2.new(1, -20, 0, 18)
-        descLbl.Position = UDim2.new(0, 12, 0, 28)
-        descLbl.BackgroundTransparency = 1
-        descLbl.Text = desc
-        descLbl.TextColor3 = Color3.fromRGB(200, 200, 220)
-        descLbl.Font = Enum.Font.Gotham
-        descLbl.TextSize = 14
-        descLbl.TextXAlignment = Enum.TextXAlignment.Left
-        descLbl.ZIndex = 8
-        descLbl.Parent = section
-        return section
+    -- Sidebar Buttons
+    local buttonNames = {"Aimbot", "Visuals", "Player"}
+    for i, name in ipairs(buttonNames) do
+        local btn = Instance.new("TextButton")
+        btn.Size = UDim2.new(1, -20, 0, 32)
+        btn.Position = UDim2.new(0, 10, 0, 20 + (i-1)*40)
+        btn.BackgroundColor3 = Color3.fromRGB(44, 45, 48)
+        btn.BackgroundTransparency = 1
+        btn.Text = name
+        btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+        btn.Font = Enum.Font.Gotham
+        btn.TextSize = 18
+        btn.TextXAlignment = Enum.TextXAlignment.Left
+        btn.ZIndex = 4
+        btn.Parent = sidebar
     end
 
-    -- Slider Section
-    local sliderSection = addSection(50, "Slider", "This is a slider")
-    local sliderBar = Instance.new("Frame")
-    sliderBar.Size = UDim2.new(0, 200, 0, 7)
-    sliderBar.Position = UDim2.new(1, -220, 0, 25)
-    sliderBar.AnchorPoint = Vector2.new(0, 0)
-    sliderBar.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
-    sliderBar.ZIndex = 9
-    sliderBar.Parent = sliderSection
-    createUICorner(sliderBar, 4)
-    local sliderFill = Instance.new("Frame")
-    sliderFill.Size = UDim2.new(0, 110, 1, 0)
-    sliderFill.BackgroundColor3 = Color3.fromRGB(80, 180, 255)
-    sliderFill.ZIndex = 10
-    sliderFill.Parent = sliderBar
-    createUICorner(sliderFill, 4)
-    local sliderKnob = Instance.new("Frame")
-    sliderKnob.Size = UDim2.new(0, 24, 0, 24)
-    sliderKnob.Position = UDim2.new(0, 100, 0, -8)
-    sliderKnob.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    sliderKnob.ZIndex = 11
-    sliderKnob.Parent = sliderBar
-    createUICorner(sliderKnob, 12)
-    createShadow(sliderKnob, 12)
-    local sliderValue = Instance.new("TextLabel")
-    sliderValue.Size = UDim2.new(0, 30, 0, 20)
-    sliderValue.Position = UDim2.new(1, -35, 0, 0)
-    sliderValue.BackgroundTransparency = 1
-    sliderValue.Text = "3"
-    sliderValue.TextColor3 = Color3.fromRGB(80, 180, 255)
-    sliderValue.Font = Enum.Font.GothamBold
-    sliderValue.TextSize = 18
-    sliderValue.ZIndex = 12
-    sliderValue.Parent = sliderSection
-
-    -- Dropdown Section
-    local dropdownSection = addSection(110, "Dropdown", "")
-    local dropdown = Instance.new("TextButton")
-    dropdown.Size = UDim2.new(0, 140, 0, 36)
-    dropdown.Position = UDim2.new(1, -160, 0, 10)
-    dropdown.BackgroundColor3 = Color3.fromRGB(38, 40, 50)
-    dropdown.Text = "four"
-    dropdown.TextColor3 = Color3.fromRGB(220, 220, 230)
-    dropdown.Font = Enum.Font.Gotham
-    dropdown.TextSize = 16
-    dropdown.ZIndex = 9
-    dropdown.Parent = dropdownSection
-    createUICorner(dropdown, 10)
-    createUIStroke(dropdown, Color3.fromRGB(60, 60, 80), 1)
-    local dropIcon = Instance.new("ImageLabel")
-    dropIcon.Size = UDim2.new(0, 18, 0, 18)
-    dropIcon.Position = UDim2.new(1, -24, 0.5, -9)
-    dropIcon.BackgroundTransparency = 1
-    dropIcon.Image = "rbxassetid://6031091002"
-    dropIcon.ZIndex = 10
-    dropIcon.Parent = dropdown
-
-    -- Multi Dropdown Section
-    local multiDropdownSection = addSection(170, "Dropdown", "You can select multiple values.")
-    local multiDropdown = Instance.new("TextButton")
-    multiDropdown.Size = UDim2.new(0, 220, 0, 36)
-    multiDropdown.Position = UDim2.new(1, -240, 0, 10)
-    multiDropdown.BackgroundColor3 = Color3.fromRGB(38, 40, 50)
-    multiDropdown.Text = "three, five, seven"
-    multiDropdown.TextColor3 = Color3.fromRGB(220, 220, 230)
-    multiDropdown.Font = Enum.Font.Gotham
-    multiDropdown.TextSize = 16
-    multiDropdown.ZIndex = 9
-    multiDropdown.Parent = multiDropdownSection
-    createUICorner(multiDropdown, 10)
-    createUIStroke(multiDropdown, Color3.fromRGB(60, 60, 80), 1)
-    local multiDropIcon = Instance.new("ImageLabel")
-    multiDropIcon.Size = UDim2.new(0, 18, 0, 18)
-    multiDropIcon.Position = UDim2.new(1, -24, 0.5, -9)
-    multiDropIcon.BackgroundTransparency = 1
-    multiDropIcon.Image = "rbxassetid://6031091002"
-    multiDropIcon.ZIndex = 10
-    multiDropIcon.Parent = multiDropdown
-
-    -- Color Picker Section
-    local colorSection = addSection(230, "Colorpicker", "")
-    local colorBtn = Instance.new("TextButton")
-    colorBtn.Size = UDim2.new(0, 36, 0, 36)
-    colorBtn.Position = UDim2.new(1, -54, 0, 10)
-    colorBtn.BackgroundColor3 = Color3.fromRGB(220, 80, 80)
-    colorBtn.Text = ""
-    colorBtn.ZIndex = 9
-    colorBtn.Parent = colorSection
-    createUICorner(colorBtn, 10)
-    createUIStroke(colorBtn, Color3.fromRGB(60, 60, 80), 1)
-
-    -- Color Picker Section 2
-    local colorSection2 = addSection(290, "Colorpicker", "but you can change the transparency.")
-    local colorBtn2 = Instance.new("TextButton")
-    colorBtn2.Size = UDim2.new(0, 36, 0, 36)
-    colorBtn2.Position = UDim2.new(1, -54, 0, 10)
-    colorBtn2.BackgroundColor3 = Color3.fromRGB(80, 180, 255)
-    colorBtn2.Text = ""
-    colorBtn2.ZIndex = 9
-    colorBtn2.Parent = colorSection2
-    createUICorner(colorBtn2, 10)
-    createUIStroke(colorBtn2, Color3.fromRGB(60, 60, 80), 1)
-
-    -- KeyBind Section
-    local keybindSection = addSection(350, "KeyBind", "")
-    local keybindBtn = Instance.new("TextButton")
-    keybindBtn.Size = UDim2.new(0, 70, 0, 36)
-    keybindBtn.Position = UDim2.new(1, -90, 0, 10)
-    keybindBtn.BackgroundColor3 = Color3.fromRGB(38, 40, 50)
-    keybindBtn.Text = "MB2"
-    keybindBtn.TextColor3 = Color3.fromRGB(220, 220, 230)
-    keybindBtn.Font = Enum.Font.Gotham
-    keybindBtn.TextSize = 16
-    keybindBtn.ZIndex = 9
-    keybindBtn.Parent = keybindSection
-    createUICorner(keybindBtn, 10)
-    createUIStroke(keybindBtn, Color3.fromRGB(60, 60, 80), 1)
-
-    -- Input Section
-    local inputSection = addSection(410, "Input", "")
-    local inputBox = Instance.new("TextBox")
-    inputBox.Size = UDim2.new(0, 140, 0, 36)
-    inputBox.Position = UDim2.new(1, -160, 0, 10)
-    inputBox.BackgroundColor3 = Color3.fromRGB(38, 40, 50)
-    inputBox.Text = "Default"
-    inputBox.TextColor3 = Color3.fromRGB(220, 220, 230)
-    inputBox.Font = Enum.Font.Gotham
-    inputBox.TextSize = 16
-    inputBox.ZIndex = 9
-    inputBox.Parent = inputSection
-    createUICorner(inputBox, 10)
-    createUIStroke(inputBox, Color3.fromRGB(60, 60, 80), 1)
+    -- Main Content Area
+    local content = Instance.new("Frame")
+    content.Size = UDim2.new(1, -210, 1, -70)
+    content.Position = UDim2.new(0, 200, 0, 50)
+    content.BackgroundColor3 = Color3.fromRGB(44, 45, 48)
+    content.BackgroundTransparency = 0
+    content.ZIndex = 5
+    content.Parent = main
+    createUICorner(content, 14)
+    createUIStroke(content, Color3.fromRGB(40, 40, 60), 1)
 
     return gui
 end
