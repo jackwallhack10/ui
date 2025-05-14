@@ -1,145 +1,332 @@
---[[
-CustomUILibrary.lua
-A simple, extensible custom UI library for Roblox
+-- FluentUI Replica for Roblox Executors
+-- Usage: loadstring(readfile("FluentUI.lua"))()
 
-Usage Example:
-local CustomUI = loadstring(game:HttpGet('YOUR_RAW_URL_HERE'))()
-local window = CustomUI:CreateWindow({Title = 'My Window'})
-window:AddButton({Text = 'Click Me', Callback = function() print('Clicked!') end})
-window:AddToggle({Text = 'Enable', Callback = function(state) print('Toggled:', state) end})
-window:AddDropdown({Text = 'Choose', List = {'A', 'B'}, Callback = function(choice) print('Selected:', choice) end})
-]]
+if not game or not game.Players or not game.Players.LocalPlayer then return end
+local player = game.Players.LocalPlayer
+local playerGui = player:FindFirstChildOfClass("PlayerGui")
+if not playerGui then return end
 
-local Players = game:GetService('Players')
-local LocalPlayer = Players.LocalPlayer
-local PlayerGui = LocalPlayer:FindFirstChildOfClass('PlayerGui') or Instance.new('PlayerGui', LocalPlayer)
-
-local CustomUI = {}
-CustomUI.__index = CustomUI
-
-function CustomUI:CreateWindow(options)
-    local self = setmetatable({}, CustomUI)
-    self.Title = options.Title or 'Window'
-    self.Elements = {}
-
-    -- Create ScreenGui and main Frame
-    self.ScreenGui = Instance.new('ScreenGui')
-    self.ScreenGui.Name = 'CustomUI_' .. self.Title:gsub(' ', '_')
-    self.ScreenGui.ResetOnSpawn = false
-    self.ScreenGui.Parent = PlayerGui
-
-    self.Frame = Instance.new('Frame')
-    self.Frame.Name = 'MainFrame'
-    self.Frame.Size = UDim2.new(0, 300, 0, 40)
-    self.Frame.Position = UDim2.new(0, 100, 0, 100)
-    self.Frame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    self.Frame.BorderSizePixel = 0
-    self.Frame.Parent = self.ScreenGui
-
-    local titleLabel = Instance.new('TextLabel')
-    titleLabel.Text = self.Title
-    titleLabel.Size = UDim2.new(1, 0, 0, 30)
-    titleLabel.BackgroundTransparency = 1
-    titleLabel.TextColor3 = Color3.fromRGB(255,255,255)
-    titleLabel.Font = Enum.Font.SourceSansBold
-    titleLabel.TextSize = 20
-    titleLabel.Parent = self.Frame
-
-    self.NextY = 35
-    return self
+local function createShadow(parent, z)
+    local shadow = Instance.new("ImageLabel")
+    shadow.Name = "DropShadow"
+    shadow.BackgroundTransparency = 1
+    shadow.Image = "rbxassetid://1316045217"
+    shadow.ImageTransparency = 0.7
+    shadow.Size = UDim2.new(1, 30, 1, 30)
+    shadow.Position = UDim2.new(0, -15, 0, -15)
+    shadow.ZIndex = z or 0
+    shadow.Parent = parent
 end
 
-function CustomUI:AddButton(options)
-    local button = Instance.new('TextButton')
-    button.Text = options.Text
-    button.Size = UDim2.new(1, -10, 0, 30)
-    button.Position = UDim2.new(0, 5, 0, self.NextY)
-    button.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-    button.TextColor3 = Color3.fromRGB(255,255,255)
-    button.Font = Enum.Font.SourceSans
-    button.TextSize = 18
-    button.Parent = self.Frame
-    button.MouseButton1Click:Connect(function()
-        if options.Callback then options.Callback() end
-    end)
-    self.NextY = self.NextY + 35
-    self.Elements[#self.Elements+1] = button
+local function createGlass(frame)
+    local blur = Instance.new("ImageLabel")
+    blur.BackgroundTransparency = 1
+    blur.Image = "rbxassetid://5553946656" -- Glass blur asset
+    blur.ImageTransparency = 0.7
+    blur.Size = UDim2.new(1, 0, 1, 0)
+    blur.Position = UDim2.new(0, 0, 0, 0)
+    blur.ZIndex = frame.ZIndex - 1
+    blur.Parent = frame
 end
 
-function CustomUI:AddToggle(options)
-    local toggle = Instance.new('TextButton')
-    toggle.Text = '[ ] ' .. options.Text
-    toggle.Size = UDim2.new(1, -10, 0, 30)
-    toggle.Position = UDim2.new(0, 5, 0, self.NextY)
-    toggle.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-    toggle.TextColor3 = Color3.fromRGB(255,255,255)
-    toggle.Font = Enum.Font.SourceSans
-    toggle.TextSize = 18
-    toggle.Parent = self.Frame
-    local state = false
-    toggle.MouseButton1Click:Connect(function()
-        state = not state
-        toggle.Text = (state and '[X] ' or '[ ] ') .. options.Text
-        if options.Callback then options.Callback(state) end
-    end)
-    self.NextY = self.NextY + 35
-    self.Elements[#self.Elements+1] = toggle
+local function createUICorner(parent, radius)
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, radius or 12)
+    corner.Parent = parent
 end
 
-function CustomUI:AddDropdown(options)
-    local label = Instance.new('TextLabel')
-    label.Text = options.Text
-    label.Size = UDim2.new(1, -10, 0, 20)
-    label.Position = UDim2.new(0, 5, 0, self.NextY)
-    label.BackgroundTransparency = 1
-    label.TextColor3 = Color3.fromRGB(255,255,255)
-    label.Font = Enum.Font.SourceSans
-    label.TextSize = 16
-    label.Parent = self.Frame
-    self.NextY = self.NextY + 20
+local function createUIStroke(parent, color, thickness)
+    local stroke = Instance.new("UIStroke")
+    stroke.Color = color or Color3.fromRGB(60, 60, 80)
+    stroke.Thickness = thickness or 1.5
+    stroke.Transparency = 0.5
+    stroke.Parent = parent
+end
 
-    local dropdown = Instance.new('TextButton')
-    dropdown.Text = 'Select...'
-    dropdown.Size = UDim2.new(1, -10, 0, 30)
-    dropdown.Position = UDim2.new(0, 5, 0, self.NextY)
-    dropdown.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-    dropdown.TextColor3 = Color3.fromRGB(255,255,255)
-    dropdown.Font = Enum.Font.SourceSans
-    dropdown.TextSize = 18
-    dropdown.Parent = self.Frame
-    self.NextY = self.NextY + 35
+local FluentUI = {}
+_G.FluentUI = FluentUI
 
-    local open = false
-    local optionButtons = {}
-    dropdown.MouseButton1Click:Connect(function()
-        open = not open
-        for _, btn in ipairs(optionButtons) do
-            btn.Visible = open
-        end
-    end)
-    for i, opt in ipairs(options.List) do
-        local optBtn = Instance.new('TextButton')
-        optBtn.Text = tostring(opt)
-        optBtn.Size = UDim2.new(1, -20, 0, 25)
-        optBtn.Position = UDim2.new(0, 15, 0, self.NextY + (i-1)*25)
-        optBtn.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
-        optBtn.TextColor3 = Color3.fromRGB(255,255,255)
-        optBtn.Font = Enum.Font.SourceSans
-        optBtn.TextSize = 16
-        optBtn.Visible = false
-        optBtn.Parent = self.Frame
-        optBtn.MouseButton1Click:Connect(function()
-            dropdown.Text = tostring(opt)
-            open = false
-            for _, btn in ipairs(optionButtons) do
-                btn.Visible = false
-            end
-            if options.Callback then options.Callback(opt) end
-        end)
-        table.insert(optionButtons, optBtn)
+function FluentUI:Create()
+    local gui = Instance.new("ScreenGui")
+    gui.Name = "FluentUI"
+    gui.ResetOnSpawn = false
+    gui.Parent = playerGui
+
+    -- Main Window
+    local main = Instance.new("Frame")
+    main.Size = UDim2.new(0, 520, 0, 420)
+    main.Position = UDim2.new(0.5, -260, 0.5, -210)
+    main.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+    main.BackgroundTransparency = 0.15
+    main.ZIndex = 2
+    main.Parent = gui
+    createUICorner(main, 16)
+    createUIStroke(main, Color3.fromRGB(80, 80, 100), 2)
+    createShadow(main, 1)
+    createGlass(main)
+
+    -- Sidebar
+    local sidebar = Instance.new("Frame")
+    sidebar.Size = UDim2.new(0, 90, 1, 0)
+    sidebar.Position = UDim2.new(0, 0, 0, 0)
+    sidebar.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
+    sidebar.BackgroundTransparency = 0.25
+    sidebar.ZIndex = 3
+    sidebar.Parent = main
+    createUICorner(sidebar, 16)
+    createUIStroke(sidebar, Color3.fromRGB(60, 60, 80), 1)
+
+    -- Sidebar Icons
+    local function addSidebarButton(icon, y, text)
+        local btn = Instance.new("TextButton")
+        btn.Size = UDim2.new(1, -20, 0, 40)
+        btn.Position = UDim2.new(0, 10, 0, y)
+        btn.BackgroundColor3 = Color3.fromRGB(0,0,0)
+        btn.BackgroundTransparency = 1
+        btn.Text = ""
+        btn.ZIndex = 4
+        btn.Parent = sidebar
+        local img = Instance.new("ImageLabel")
+        img.Size = UDim2.new(0, 24, 0, 24)
+        img.Position = UDim2.new(0, 8, 0.5, -12)
+        img.BackgroundTransparency = 1
+        img.Image = icon
+        img.ZIndex = 5
+        img.Parent = btn
+        local lbl = Instance.new("TextLabel")
+        lbl.Size = UDim2.new(1, -40, 1, 0)
+        lbl.Position = UDim2.new(0, 40, 0, 0)
+        lbl.BackgroundTransparency = 1
+        lbl.Text = text
+        lbl.TextColor3 = Color3.fromRGB(180, 180, 200)
+        lbl.Font = Enum.Font.Gotham
+        lbl.TextSize = 16
+        lbl.TextXAlignment = Enum.TextXAlignment.Left
+        lbl.ZIndex = 5
+        lbl.Parent = btn
+        return btn
     end
-    self.NextY = self.NextY + #options.List * 25
-    self.Elements[#self.Elements+1] = dropdown
+    addSidebarButton("rbxassetid://6031094678", 30, "Main")
+    addSidebarButton("rbxassetid://6031094679", 80, "Settings")
+
+    -- Top Bar
+    local topbar = Instance.new("Frame")
+    topbar.Size = UDim2.new(1, 0, 0, 36)
+    topbar.Position = UDim2.new(0, 0, 0, 0)
+    topbar.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+    topbar.BackgroundTransparency = 0.1
+    topbar.ZIndex = 4
+    topbar.Parent = main
+    createUICorner(topbar, 16)
+    createUIStroke(topbar, Color3.fromRGB(80, 80, 100), 1)
+
+    local title = Instance.new("TextLabel")
+    title.Size = UDim2.new(1, 0, 1, 0)
+    title.Position = UDim2.new(0, 0, 0, 0)
+    title.BackgroundTransparency = 1
+    title.Text = "Fluent 1.1.0 by dawid"
+    title.TextColor3 = Color3.fromRGB(200, 200, 220)
+    title.Font = Enum.Font.GothamSemibold
+    title.TextSize = 16
+    title.TextXAlignment = Enum.TextXAlignment.Left
+    title.ZIndex = 5
+    title.Parent = topbar
+    
+    -- Main Content
+    local content = Instance.new("Frame")
+    content.Size = UDim2.new(1, -110, 1, -56)
+    content.Position = UDim2.new(0, 100, 0, 46)
+    content.BackgroundTransparency = 1
+    content.ZIndex = 5
+    content.Parent = main
+
+    local mainTitle = Instance.new("TextLabel")
+    mainTitle.Size = UDim2.new(1, 0, 0, 36)
+    mainTitle.Position = UDim2.new(0, 0, 0, 0)
+    mainTitle.BackgroundTransparency = 1
+    mainTitle.Text = "Main"
+    mainTitle.TextColor3 = Color3.fromRGB(230, 230, 240)
+    mainTitle.Font = Enum.Font.GothamBlack
+    mainTitle.TextSize = 28
+    mainTitle.TextXAlignment = Enum.TextXAlignment.Left
+    mainTitle.ZIndex = 6
+    mainTitle.Parent = content
+
+    -- Section Helper
+    local function addSection(y, label, desc)
+        local section = Instance.new("Frame")
+        section.Size = UDim2.new(1, 0, 0, 56)
+        section.Position = UDim2.new(0, 0, 0, y)
+        section.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
+        section.BackgroundTransparency = 0.15
+        section.ZIndex = 7
+        section.Parent = content
+        createUICorner(section, 10)
+        createUIStroke(section, Color3.fromRGB(80, 80, 100), 1)
+        local lbl = Instance.new("TextLabel")
+        lbl.Size = UDim2.new(1, -20, 0, 22)
+        lbl.Position = UDim2.new(0, 10, 0, 4)
+        lbl.BackgroundTransparency = 1
+        lbl.Text = label
+        lbl.TextColor3 = Color3.fromRGB(200, 200, 220)
+        lbl.Font = Enum.Font.GothamSemibold
+        lbl.TextSize = 18
+        lbl.TextXAlignment = Enum.TextXAlignment.Left
+        lbl.ZIndex = 8
+        lbl.Parent = section
+        local descLbl = Instance.new("TextLabel")
+        descLbl.Size = UDim2.new(1, -20, 0, 18)
+        descLbl.Position = UDim2.new(0, 10, 0, 28)
+        descLbl.BackgroundTransparency = 1
+        descLbl.Text = desc
+        descLbl.TextColor3 = Color3.fromRGB(160, 160, 180)
+        descLbl.Font = Enum.Font.Gotham
+        descLbl.TextSize = 14
+        descLbl.TextXAlignment = Enum.TextXAlignment.Left
+        descLbl.ZIndex = 8
+        descLbl.Parent = section
+        return section
+    end
+
+    -- Slider Section
+    local sliderSection = addSection(50, "Slider", "This is a slider")
+    -- Slider (visual only, not interactive)
+    local sliderBar = Instance.new("Frame")
+    sliderBar.Size = UDim2.new(0, 180, 0, 6)
+    sliderBar.Position = UDim2.new(1, -200, 0, 25)
+    sliderBar.AnchorPoint = Vector2.new(0, 0)
+    sliderBar.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
+    sliderBar.ZIndex = 9
+    sliderBar.Parent = sliderSection
+    createUICorner(sliderBar, 3)
+    local sliderFill = Instance.new("Frame")
+    sliderFill.Size = UDim2.new(0, 90, 1, 0)
+    sliderFill.BackgroundColor3 = Color3.fromRGB(80, 180, 255)
+    sliderFill.ZIndex = 10
+    sliderFill.Parent = sliderBar
+    createUICorner(sliderFill, 3)
+    local sliderKnob = Instance.new("Frame")
+    sliderKnob.Size = UDim2.new(0, 16, 0, 16)
+    sliderKnob.Position = UDim2.new(0, 80, 0, -5)
+    sliderKnob.BackgroundColor3 = Color3.fromRGB(80, 180, 255)
+    sliderKnob.ZIndex = 11
+    sliderKnob.Parent = sliderBar
+    createUICorner(sliderKnob, 8)
+    createShadow(sliderKnob, 12)
+    local sliderValue = Instance.new("TextLabel")
+    sliderValue.Size = UDim2.new(0, 30, 0, 20)
+    sliderValue.Position = UDim2.new(1, -35, 0, 0)
+    sliderValue.BackgroundTransparency = 1
+    sliderValue.Text = "3"
+    sliderValue.TextColor3 = Color3.fromRGB(80, 180, 255)
+    sliderValue.Font = Enum.Font.GothamBold
+    sliderValue.TextSize = 16
+    sliderValue.ZIndex = 12
+    sliderValue.Parent = sliderSection
+
+    -- Dropdown Section
+    local dropdownSection = addSection(110, "Dropdown", "")
+    local dropdown = Instance.new("TextButton")
+    dropdown.Size = UDim2.new(0, 140, 0, 32)
+    dropdown.Position = UDim2.new(1, -160, 0, 12)
+    dropdown.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+    dropdown.Text = "four"
+    dropdown.TextColor3 = Color3.fromRGB(200, 200, 220)
+    dropdown.Font = Enum.Font.Gotham
+    dropdown.TextSize = 16
+    dropdown.ZIndex = 9
+    dropdown.Parent = dropdownSection
+    createUICorner(dropdown, 8)
+    createUIStroke(dropdown, Color3.fromRGB(80, 80, 100), 1)
+    local dropIcon = Instance.new("ImageLabel")
+    dropIcon.Size = UDim2.new(0, 18, 0, 18)
+    dropIcon.Position = UDim2.new(1, -24, 0.5, -9)
+    dropIcon.BackgroundTransparency = 1
+    dropIcon.Image = "rbxassetid://6031091002"
+    dropIcon.ZIndex = 10
+    dropIcon.Parent = dropdown
+
+    -- Multi Dropdown Section
+    local multiDropdownSection = addSection(170, "Dropdown", "You can select multiple values.")
+    local multiDropdown = Instance.new("TextButton")
+    multiDropdown.Size = UDim2.new(0, 220, 0, 32)
+    multiDropdown.Position = UDim2.new(1, -240, 0, 12)
+    multiDropdown.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+    multiDropdown.Text = "three, five, seven"
+    multiDropdown.TextColor3 = Color3.fromRGB(200, 200, 220)
+    multiDropdown.Font = Enum.Font.Gotham
+    multiDropdown.TextSize = 16
+    multiDropdown.ZIndex = 9
+    multiDropdown.Parent = multiDropdownSection
+    createUICorner(multiDropdown, 8)
+    createUIStroke(multiDropdown, Color3.fromRGB(80, 80, 100), 1)
+    local multiDropIcon = Instance.new("ImageLabel")
+    multiDropIcon.Size = UDim2.new(0, 18, 0, 18)
+    multiDropIcon.Position = UDim2.new(1, -24, 0.5, -9)
+    multiDropIcon.BackgroundTransparency = 1
+    multiDropIcon.Image = "rbxassetid://6031091002"
+    multiDropIcon.ZIndex = 10
+    multiDropIcon.Parent = multiDropdown
+
+    -- Color Picker Section
+    local colorSection = addSection(230, "Colorpicker", "")
+    local colorBtn = Instance.new("TextButton")
+    colorBtn.Size = UDim2.new(0, 32, 0, 32)
+    colorBtn.Position = UDim2.new(1, -50, 0, 12)
+    colorBtn.BackgroundColor3 = Color3.fromRGB(220, 80, 80)
+    colorBtn.Text = ""
+    colorBtn.ZIndex = 9
+    colorBtn.Parent = colorSection
+    createUICorner(colorBtn, 8)
+    createUIStroke(colorBtn, Color3.fromRGB(80, 80, 100), 1)
+
+    -- Color Picker Section 2
+    local colorSection2 = addSection(290, "Colorpicker", "but you can change the transparency.")
+    local colorBtn2 = Instance.new("TextButton")
+    colorBtn2.Size = UDim2.new(0, 32, 0, 32)
+    colorBtn2.Position = UDim2.new(1, -50, 0, 12)
+    colorBtn2.BackgroundColor3 = Color3.fromRGB(80, 180, 255)
+    colorBtn2.Text = ""
+    colorBtn2.ZIndex = 9
+    colorBtn2.Parent = colorSection2
+    createUICorner(colorBtn2, 8)
+    createUIStroke(colorBtn2, Color3.fromRGB(80, 80, 100), 1)
+
+    -- KeyBind Section
+    local keybindSection = addSection(350, "KeyBind", "")
+    local keybindBtn = Instance.new("TextButton")
+    keybindBtn.Size = UDim2.new(0, 60, 0, 32)
+    keybindBtn.Position = UDim2.new(1, -80, 0, 12)
+    keybindBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
+    keybindBtn.Text = "MB2"
+    keybindBtn.TextColor3 = Color3.fromRGB(200, 200, 220)
+    keybindBtn.Font = Enum.Font.Gotham
+    keybindBtn.TextSize = 16
+    keybindBtn.ZIndex = 9
+    keybindBtn.Parent = keybindSection
+    createUICorner(keybindBtn, 8)
+    createUIStroke(keybindBtn, Color3.fromRGB(80, 80, 100), 1)
+
+    -- Input Section
+    local inputSection = addSection(410, "Input", "")
+    local inputBox = Instance.new("TextBox")
+    inputBox.Size = UDim2.new(0, 120, 0, 32)
+    inputBox.Position = UDim2.new(1, -140, 0, 12)
+    inputBox.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
+    inputBox.Text = "Default"
+    inputBox.TextColor3 = Color3.fromRGB(200, 200, 220)
+    inputBox.Font = Enum.Font.Gotham
+    inputBox.TextSize = 16
+    inputBox.ZIndex = 9
+    inputBox.Parent = inputSection
+    createUICorner(inputBox, 8)
+    createUIStroke(inputBox, Color3.fromRGB(80, 80, 100), 1)
+
+    return gui
 end
 
-return setmetatable({CreateWindow = CustomUI.CreateWindow}, CustomUI) 
+-- Example usage:
+if not _G.FluentUI_Example then
+    _G.FluentUI_Example = true
+    FluentUI:Create()
+end 
