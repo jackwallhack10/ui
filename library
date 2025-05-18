@@ -1,128 +1,975 @@
--- FluentUI Replica for Roblox Executors (Fixed and Restyled)
--- Usage: loadstring(game:HttpGet("<your-raw-url>"))()
+ --[[
+Da Hood Teleport & Player UI - Modern Minimal Style
+]]--
 
-if not game or not game.Players or not game.Players.LocalPlayer then return end
-local player = game.Players.LocalPlayer
-local playerGui = player:FindFirstChildOfClass("PlayerGui")
-if not playerGui then return end
+-- LinoriaLib UI for Da Hood Utility
+local repo = 'https://raw.githubusercontent.com/violin-suzutsuki/LinoriaLib/main/'
+local Library = loadstring(game:HttpGet(repo .. 'Library.lua'))()
+local ThemeManager = loadstring(game:HttpGet(repo .. 'addons/ThemeManager.lua'))()
+local SaveManager = loadstring(game:HttpGet(repo .. 'addons/SaveManager.lua'))()
 
-local function createUICorner(parent, radius)
-    local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, radius or 14)
-    corner.Parent = parent
-end
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local HttpService = game:GetService('HttpService')
 
-local function createUIStroke(parent, color, thickness)
-    local stroke = Instance.new("UIStroke")
-    stroke.Color = color or Color3.fromRGB(60, 60, 80)
-    stroke.Thickness = thickness or 1.5
-    stroke.Transparency = 0.6
-    stroke.Parent = parent
-end
+-- Da Hood locations and CFrames (example positions, adjust as needed)
+local locations = {
+    {Name = "Bank", CFrame = CFrame.new(-265, 22, -104)},
+    {Name = "Gun Store", CFrame = CFrame.new(-600, 22, -780)},
+    {Name = "Playground", CFrame = CFrame.new(-100, 22, -600)},
+    {Name = "Police Station", CFrame = CFrame.new(-250, 22, -800)},
+    {Name = "Hospital", CFrame = CFrame.new(-400, 22, -300)},
+    {Name = "Casino", CFrame = CFrame.new(-800, 22, -400)},
+    {Name = "Boxing Club", CFrame = CFrame.new(-500, 22, -100)},
+    {Name = "School", CFrame = CFrame.new(-100, 22, -1000)},
+    {Name = "Admin Base", CFrame = CFrame.new(-1000, 22, -1000)},
+}
 
-local function createShadow(parent, z)
-    local shadow = Instance.new("ImageLabel")
-    shadow.Name = "DropShadow"
-    shadow.BackgroundTransparency = 1
-    shadow.Image = "rbxassetid://1316045217"
-    shadow.ImageTransparency = 0.85
-    shadow.Size = UDim2.new(1, 24, 1, 24)
-    shadow.Position = UDim2.new(0, -12, 0, -12)
-    shadow.ZIndex = z or 0
-    shadow.Parent = parent
-end
+local locationNames = {}
+for _, loc in ipairs(locations) do table.insert(locationNames, loc.Name) end
 
-local function createGlass(frame)
-    local blur = Instance.new("ImageLabel")
-    blur.BackgroundTransparency = 1
-    blur.Image = "rbxassetid://5553946656" -- Glass blur asset
-    blur.ImageTransparency = 0.85
-    blur.Size = UDim2.new(1, 0, 1, 0)
-    blur.Position = UDim2.new(0, 0, 0, 0)
-    blur.ZIndex = frame.ZIndex - 1
-    blur.Parent = frame
-end
+local Window = Library:CreateWindow({
+    Title = 'GhostWare  Private',
+    Center = true,
+    AutoShow = true,
+    TabPadding = 8,
+    MenuFadeTime = 0.2
+})
 
-local FluentUI = {}
-_G.FluentUI = FluentUI
+-- Enable keybind list and overlay
+-- Library.KeybindFrame.Visible = true -- removed
+Library:SetWatermark('GhostWare  |  Private')
+Library:SetWatermarkVisibility(true)
 
-function FluentUI:Create()
-    local gui = Instance.new("ScreenGui")
-    gui.Name = "FluentUI"
-    gui.ResetOnSpawn = false
-    gui.Parent = playerGui
+local Tabs = {
+    Aimbot = Window:AddTab('Aimbot'),
+    Visuals = Window:AddTab('Visuals'),
+    Player = Window:AddTab('Player'),
+    Teleport = Window:AddTab('Teleport'),
+    Misc = Window:AddTab('Misc'),
+    ['UI Settings'] = Window:AddTab('UI Settings'),
+}
 
-    -- Main Window
-    local main = Instance.new("Frame")
-    main.Size = UDim2.new(0, 700, 0, 420)
-    main.Position = UDim2.new(0.5, -350, 0.5, -210)
-    main.BackgroundColor3 = Color3.fromRGB(36, 37, 39)
-    main.BackgroundTransparency = 0
-    main.ZIndex = 2
-    main.Parent = gui
-    createUICorner(main, 18)
-    createUIStroke(main, Color3.fromRGB(40, 40, 60), 2)
-    createShadow(main, 1)
-    createGlass(main)
+-- Aimbot Tab (Full Rewrite with New Camera Method)
+local AimbotBox = Tabs.Aimbot:AddLeftGroupbox('Aimbot')
+AimbotBox:AddToggle('AimbotEnabled', { Text = 'Enable Aimbot', Default = false })
+AimbotBox:AddLabel('Aimbot Key'):AddKeyPicker('AimbotKey', { Text = 'Aimbot Key', Default = 'Q', NoUI = false })
+AimbotBox:AddDropdown('AimbotMode', { Text = 'Aimbot Mode', Values = { 'Hold', 'Toggle' }, Default = 'Hold' })
+AimbotBox:AddDropdown('AimbotTargetPart', { Text = 'Target Part', Values = { 'Head', 'Torso' }, Default = 'Head' })
+AimbotBox:AddToggle('AimbotTeamCheck', { Text = 'Team Check', Default = true })
+AimbotBox:AddSlider('AimbotDistance', { Text = 'Max Distance', Default = 500, Min = 10, Max = 2000, Rounding = 0 })
+AimbotBox:AddSlider('AimbotSmoothness', { Text = 'Aimbot Smoothness', Default = 0.2, Min = 0.01, Max = 1, Rounding = 2 })
 
-    -- Title (centered at the top)
-    local title = Instance.new("TextLabel")
-    title.Size = UDim2.new(1, 0, 0, 40)
-    title.Position = UDim2.new(0, 0, 0, 0)
-    title.BackgroundTransparency = 1
-    title.Text = "GhostWare"
-    title.TextColor3 = Color3.fromRGB(255, 255, 255)
-    title.Font = Enum.Font.GothamBold
-    title.TextSize = 28
-    title.TextXAlignment = Enum.TextXAlignment.Center
-    title.TextYAlignment = Enum.TextYAlignment.Center
-    title.ZIndex = 5
-    title.Parent = main
+local FOVBox = Tabs.Aimbot:AddLeftGroupbox('FOV Circle')
+FOVBox:AddToggle('ShowFOV', { Text = 'Show FOV Circle', Default = false })
+FOVBox:AddSlider('FOVSize', { Text = 'FOV Size', Default = 100, Min = 30, Max = 500, Rounding = 0 })
+FOVBox:AddLabel('FOV Color'):AddColorPicker('FOVColor', { Default = Color3.fromRGB(255,255,0), Title = 'FOV Color', Transparency = 0 })
 
-    -- Sidebar
-    local sidebar = Instance.new("Frame")
-    sidebar.Size = UDim2.new(0, 180, 1, -20)
-    sidebar.Position = UDim2.new(0, 10, 0, 50)
-    sidebar.BackgroundColor3 = Color3.fromRGB(44, 45, 48)
-    sidebar.BackgroundTransparency = 0
-    sidebar.ZIndex = 3
-    sidebar.Parent = main
-    createUICorner(sidebar, 14)
-    createUIStroke(sidebar, Color3.fromRGB(40, 40, 60), 1)
+-- Visuals Tab
+local VisualsBox = Tabs.Visuals:AddLeftGroupbox('ESP')
+VisualsBox:AddToggle('BoxESP', { Text = '2D Box ESP', Default = false })
+VisualsBox:AddToggle('NameESP', { Text = 'Name ESP', Default = false })
+VisualsBox:AddToggle('ToolESP', { Text = 'Tool Name ESP', Default = false })
+VisualsBox:AddToggle('TracerESP', { Text = 'Tracer ESP', Default = false })
+VisualsBox:AddToggle('HealthbarESP', { Text = 'Healthbar ESP', Default = false })
+VisualsBox:AddToggle('ChamsESP', { Text = 'Chams ESP', Default = false })
+VisualsBox:AddToggle('DistanceESP', { Text = 'Distance ESP', Default = false })
+VisualsBox:AddToggle('DeadESP', { Text = 'Dead/Ragdoll ESP', Default = false })
+VisualsBox:AddToggle('RadarESP', { Text = 'Radar ESP', Default = false })
+VisualsBox:AddToggle('HealthPercentESP', { Text = 'Health Percent ESP', Default = false })
+VisualsBox:AddLabel('ESP Color'):AddColorPicker('ESPColor', {
+    Default = Color3.fromRGB(255, 255, 0),
+    Title = 'ESP Color',
+    Transparency = 0
+})
 
-    -- Sidebar Buttons
-    local buttonNames = {"Aimbot", "Visuals", "Player"}
-    for i, name in ipairs(buttonNames) do
-        local btn = Instance.new("TextButton")
-        btn.Size = UDim2.new(1, -20, 0, 32)
-        btn.Position = UDim2.new(0, 10, 0, 20 + (i-1)*40)
-        btn.BackgroundColor3 = Color3.fromRGB(44, 45, 48)
-        btn.BackgroundTransparency = 1
-        btn.Text = name
-        btn.TextColor3 = Color3.fromRGB(255, 255, 255)
-        btn.Font = Enum.Font.Gotham
-        btn.TextSize = 18
-        btn.TextXAlignment = Enum.TextXAlignment.Left
-        btn.ZIndex = 4
-        btn.Parent = sidebar
+-- Player Tab
+local PlayerBox = Tabs.Player:AddLeftGroupbox('Movement')
+PlayerBox:AddToggle('WalkSpeedToggle', { Text = 'CFrame WalkSpeed', Default = false })
+PlayerBox:AddLabel('WalkSpeed Key'):AddKeyPicker('WalkSpeedKey', { Text = 'WalkSpeed Key', Default = 'Z', NoUI = false })
+PlayerBox:AddSlider('WalkSpeedValue', { Text = 'WalkSpeed Value', Default = 60, Min = 10, Max = 500, Rounding = 0 })
+PlayerBox:AddToggle('FlightToggle', { Text = 'CFrame Flight', Default = false })
+PlayerBox:AddLabel('Flight Key'):AddKeyPicker('FlightKey', { Text = 'Flight Key', Default = 'X', NoUI = false })
+PlayerBox:AddSlider('FlightSpeedValue', { Text = 'Flight Speed', Default = 60, Min = 10, Max = 500, Rounding = 0 })
+PlayerBox:AddToggle('InfiniteJump', { Text = 'Infinite Jump', Default = false })
+PlayerBox:AddToggle('NoClip', { Text = 'NoClip', Default = false })
+PlayerBox:AddToggle('WallClimb', { Text = 'Wall Climb (Spider Climb)', Default = false })
+PlayerBox:AddLabel('NoClip Key'):AddKeyPicker('NoClipKey', { Text = 'NoClip Key', Default = 'E', NoUI = false })
+PlayerBox:AddToggle('ClickTPEnabled', { Text = 'Enable Click TP', Default = false })
+PlayerBox:AddLabel('Click TP Key'):AddKeyPicker('ClickTPKey', { Text = 'Click TP Key', Default = 'C', NoUI = false })
+
+-- Teleport Tab
+local TeleportBox = Tabs.Teleport:AddLeftGroupbox('Teleport')
+local selectedTeleportIndex = 1
+TeleportBox:AddDropdown('TeleportLocation', {
+    Text = 'Location',
+    Values = locationNames,
+    Default = 1,
+    Callback = function(val)
+        selectedTeleportIndex = val
     end
+})
+TeleportBox:AddButton({ Text = 'Teleport', Func = function()
+    local loc = locations[selectedTeleportIndex]
+    local char = player.Character
+    if loc and char and char:FindFirstChild('HumanoidRootPart') then
+        char.HumanoidRootPart.CFrame = loc.CFrame
+    end
+end })
 
-    -- Main Content Area
-    local content = Instance.new("Frame")
-    content.Size = UDim2.new(1, -210, 1, -70)
-    content.Position = UDim2.new(0, 200, 0, 50)
-    content.BackgroundColor3 = Color3.fromRGB(44, 45, 48)
-    content.BackgroundTransparency = 0
-    content.ZIndex = 5
-    content.Parent = main
-    createUICorner(content, 14)
-    createUIStroke(content, Color3.fromRGB(40, 40, 60), 1)
+-- Add player teleport dropdown and button
+local function getPlayerNames()
+    local names = {}
+    for _, plr in ipairs(Players:GetPlayers()) do
+        if plr ~= player then table.insert(names, plr.Name) end
+    end
+    return names
+end
+TeleportBox:AddDropdown('TeleportPlayer', { Text = 'Teleport to Player', Values = getPlayerNames(), Default = 1, Multi = false })
+TeleportBox:AddButton({ Text = 'Teleport to Player', Func = function()
+    local targetName = Options.TeleportPlayer.Value
+    local target = Players:FindFirstChild(targetName)
+    local char = player.Character
+    if target and target.Character and target.Character:FindFirstChild('HumanoidRootPart') and char and char:FindFirstChild('HumanoidRootPart') then
+        char.HumanoidRootPart.CFrame = target.Character.HumanoidRootPart.CFrame + Vector3.new(0, 3, 0)
+    end
+end })
 
-    return gui
+-- Update player list on player join/leave
+Players.PlayerAdded:Connect(function()
+    Options.TeleportPlayer:SetValues(getPlayerNames())
+end)
+Players.PlayerRemoving:Connect(function()
+    Options.TeleportPlayer:SetValues(getPlayerNames())
+end)
+
+-- Logic for toggles, sliders, keybinds
+local function getCharHRP()
+    local char = player.Character
+    return char and char:FindFirstChild('HumanoidRootPart')
 end
 
--- Example usage:
-if not _G.FluentUI_Example then
-    _G.FluentUI_Example = true
-    FluentUI:Create()
-end 
+-- WalkSpeed/Flight keybind logic: toggle must be enabled for keybind to work
+local walkSpeedActive = false
+local flightActive = false
+UserInputService.InputBegan:Connect(function(input, gp)
+    if input.UserInputType == Enum.UserInputType.Keyboard then
+        if input.KeyCode.Name == Options.NoClipKey.Value then
+            Toggles.NoClip:SetValue(not Toggles.NoClip.Value)
+        end
+        if Toggles.WalkSpeedToggle.Value and input.KeyCode.Name == Options.WalkSpeedKey.Value then
+            walkSpeedActive = not walkSpeedActive
+        end
+        if Toggles.FlightToggle.Value and input.KeyCode.Name == Options.FlightKey.Value then
+            flightActive = not flightActive
+        end
+    end
+end)
+
+-- Update WalkSpeed/Flight logic to use active flags
+RunService.RenderStepped:Connect(function()
+    -- WalkSpeed
+    if Toggles.WalkSpeedToggle.Value and walkSpeedActive and getCharHRP() then
+        local humanoid = player.Character:FindFirstChildOfClass('Humanoid')
+        if humanoid then
+            local moveDir = humanoid.MoveDirection
+            if moveDir.Magnitude > 0 then
+                local speed = Options.WalkSpeedValue.Value * RunService.RenderStepped:Wait()
+                getCharHRP().CFrame = getCharHRP().CFrame + (moveDir.Unit * speed)
+            end
+        end
+    end
+    -- Flight
+    if Toggles.FlightToggle.Value and flightActive and getCharHRP() then
+        local hrp = getCharHRP()
+        local cam = workspace.CurrentCamera
+        local moveVec = Vector3.new()
+        if UserInputService:IsKeyDown(Enum.KeyCode.W) then moveVec = moveVec + cam.CFrame.LookVector end
+        if UserInputService:IsKeyDown(Enum.KeyCode.S) then moveVec = moveVec - cam.CFrame.LookVector end
+        if UserInputService:IsKeyDown(Enum.KeyCode.A) then moveVec = moveVec - cam.CFrame.RightVector end
+        if UserInputService:IsKeyDown(Enum.KeyCode.D) then moveVec = moveVec + cam.CFrame.RightVector end
+        if UserInputService:IsKeyDown(Enum.KeyCode.Space) then moveVec = moveVec + cam.CFrame.UpVector end
+        if UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) then moveVec = moveVec - cam.CFrame.UpVector end
+        if moveVec.Magnitude > 0 then
+            local speed = Options.FlightSpeedValue.Value * RunService.RenderStepped:Wait()
+            hrp.CFrame = hrp.CFrame + (moveVec.Unit * speed)
+        end
+        hrp.Velocity = Vector3.new(0, 0, 0) -- Prevent gravity
+        local humanoid = player.Character:FindFirstChildOfClass('Humanoid')
+        if humanoid then humanoid.PlatformStand = true end
+    else
+        local humanoid = player.Character and player.Character:FindFirstChildOfClass('Humanoid')
+        if humanoid then humanoid.PlatformStand = false end
+    end
+end)
+
+-- Infinite Jump
+local infiniteJumpConn
+if infiniteJumpConn then infiniteJumpConn:Disconnect() end
+infiniteJumpConn = UserInputService.JumpRequest:Connect(function()
+    if Toggles.InfiniteJump.Value then
+        local char = player.Character
+        if char and char:FindFirstChildOfClass('Humanoid') then
+            char:FindFirstChildOfClass('Humanoid'):ChangeState(Enum.HumanoidStateType.Jumping)
+        end
+    end
+end)
+
+-- NoClip
+RunService.Stepped:Connect(function()
+    if Toggles.NoClip.Value and player.Character then
+        for _, v in pairs(player.Character:GetDescendants()) do
+            if v:IsA('BasePart') and v.CanCollide then
+                v.CanCollide = false
+            end
+        end
+    end
+end)
+
+-- Aimbot logic (Full Rewrite, New Camera Method)
+local aimbotActive = false
+local function isAimbotKey(input, key)
+    return (input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode.Name == key)
+        or (input.UserInputType == Enum.UserInputType.MouseButton1 and key == 'MB1')
+        or (input.UserInputType == Enum.UserInputType.MouseButton2 and key == 'MB2')
+end
+UserInputService.InputBegan:Connect(function(input, gp)
+    if gp then return end
+    local mode = Options.AimbotMode.Value
+    local key = Options.AimbotKey.Value
+    if Toggles.AimbotEnabled.Value then
+        if mode == 'Hold' and isAimbotKey(input, key) then
+            aimbotActive = true
+        elseif mode == 'Toggle' and isAimbotKey(input, key) then
+            aimbotActive = not aimbotActive
+        end
+    end
+end)
+UserInputService.InputEnded:Connect(function(input, gp)
+    if gp then return end
+    local mode = Options.AimbotMode.Value
+    local key = Options.AimbotKey.Value
+    if Toggles.AimbotEnabled.Value then
+        if mode == 'Hold' and isAimbotKey(input, key) then
+            aimbotActive = false
+        end
+    end
+end)
+
+local fovCircle = Drawing.new('Circle')
+fovCircle.Visible = false
+fovCircle.Thickness = 2
+fovCircle.Filled = false
+fovCircle.Transparency = 1
+fovCircle.NumSides = 100
+
+local function isVisible(targetPart)
+    local Camera = workspace.CurrentCamera
+    if not Camera then return false end
+    local origin = Camera.CFrame.Position
+    local direction = (targetPart.Position - origin).Unit * (targetPart.Position - origin).Magnitude
+    local ray = Ray.new(origin, direction)
+    local ignoreList = {player.Character}
+    local hit = workspace:FindPartOnRayWithIgnoreList(ray, ignoreList)
+    return not hit or hit:IsDescendantOf(targetPart.Parent)
+end
+
+local function getBestTarget()
+    local Camera = workspace.CurrentCamera
+    if not Camera then return nil end
+    local best, minDist = nil, math.huge
+    local targetPartName = Options.AimbotTargetPart.Value == 'Torso' and 'UpperTorso' or 'Head'
+    for _, plr in ipairs(Players:GetPlayers()) do
+        if plr ~= player and plr.Character and plr.Character:FindFirstChild(targetPartName) then
+            if Toggles.AimbotTeamCheck.Value and plr.Team == player.Team then
+                continue
+            end
+            local part = plr.Character[targetPartName]
+            local screenPos, onScreen = Camera:WorldToViewportPoint(part.Position)
+            if onScreen then
+                local dist = (Vector2.new(screenPos.X, screenPos.Y) - Vector2.new(Camera.ViewportSize.X/2, Camera.ViewportSize.Y/2)).Magnitude
+                local maxDist = Options.AimbotDistance.Value
+                if dist < minDist and dist <= Options.FOVSize.Value and (part.Position - Camera.CFrame.Position).Magnitude <= maxDist then
+                    if isVisible(part) then
+                        minDist = dist
+                        best = part
+                    end
+                end
+            end
+        end
+    end
+    return best
+end
+
+RunService.RenderStepped:Connect(function()
+    local Camera = workspace.CurrentCamera
+    if not Camera then return end
+    -- FOV Circle
+    fovCircle.Visible = Toggles.ShowFOV.Value
+    fovCircle.Position = Vector2.new(Camera.ViewportSize.X/2, Camera.ViewportSize.Y/2)
+    fovCircle.Radius = Options.FOVSize.Value
+    fovCircle.Color = Options.FOVColor and Options.FOVColor.Value or Color3.fromRGB(255,255,0)
+    -- Aimbot logic
+    if Toggles.AimbotEnabled.Value and aimbotActive then
+        local target = getBestTarget()
+        if target then
+            local smoothness = tonumber(Options.AimbotSmoothness and Options.AimbotSmoothness.Value) or 0.2
+            local camPos = Camera.CFrame.Position
+            local lookAt = target.Position
+            local currentLook = Camera.CFrame.LookVector
+            local desiredLook = (lookAt - camPos).Unit
+            local newLook = currentLook:Lerp(desiredLook, smoothness)
+            local up = Vector3.new(0, 1, 0)
+            -- Prevent gimbal lock by recalculating up if needed
+            if math.abs(newLook:Dot(up)) > 0.99 then
+                up = Vector3.new(0, 0, 1)
+            end
+            Camera.CFrame = CFrame.lookAt(camPos, camPos + newLook, up)
+        end
+    end
+end)
+
+-- Visuals logic (Drawing API)
+local boxDrawings, nameDrawings, toolDrawings, tracerDrawings, healthbarDrawings = {}, {}, {}, {}, {}
+RunService.RenderStepped:Connect(function()
+    local Camera = workspace.CurrentCamera
+    if not Camera then return end
+    for _, box in pairs(boxDrawings) do box.Visible = false end
+    for _, name in pairs(nameDrawings) do name.Visible = false end
+    for _, tool in pairs(toolDrawings) do tool.Visible = false end
+    for _, tracer in pairs(tracerDrawings) do tracer.Visible = false end
+    for _, healthbar in pairs(healthbarDrawings) do healthbar.Visible = false end
+    local idx, nidx, tidx, tridx, hidx = 1, 1, 1, 1, 1
+    if Toggles.BoxESP.Value or Toggles.NameESP.Value or Toggles.ToolESP.Value or Toggles.TracerESP.Value or Toggles.HealthbarESP.Value then
+        for _, plr in ipairs(Players:GetPlayers()) do
+            if plr ~= player and plr.Character and plr.Character:FindFirstChild('HumanoidRootPart') then
+                local char = plr.Character
+                local root = char.HumanoidRootPart
+                local size = Vector3.new(4, 7, 2)
+                local cframe = root.CFrame
+                local corners = {
+                    cframe * Vector3.new(-size.X/2, -size.Y/2, -size.Z/2),
+                    cframe * Vector3.new(-size.X/2, -size.Y/2, size.Z/2),
+                    cframe * Vector3.new(-size.X/2, size.Y/2, -size.Z/2),
+                    cframe * Vector3.new(-size.X/2, size.Y/2, size.Z/2),
+                    cframe * Vector3.new(size.X/2, -size.Y/2, -size.Z/2),
+                    cframe * Vector3.new(size.X/2, -size.Y/2, size.Z/2),
+                    cframe * Vector3.new(size.X/2, size.Y/2, -size.Z/2),
+                    cframe * Vector3.new(size.X/2, size.Y/2, size.Z/2),
+                }
+                local minX, minY = math.huge, math.huge
+                local maxX, maxY = -math.huge, -math.huge
+                local onScreenCount = 0
+                local points = {}
+                for _, corner in ipairs(corners) do
+                    local screen, onScreen = Camera:WorldToViewportPoint(corner)
+                    if onScreen then
+                        minX = math.min(minX, screen.X)
+                        minY = math.min(minY, screen.Y)
+                        maxX = math.max(maxX, screen.X)
+                        maxY = math.max(maxY, screen.Y)
+                        onScreenCount = onScreenCount + 1
+                        table.insert(points, screen)
+                    end
+                end
+                if onScreenCount >= 2 then
+                    if Toggles.BoxESP.Value then
+                        if not boxDrawings[idx] then
+                            local box = Drawing.new('Square')
+                            box.Thickness = 2
+                            box.Filled = false
+                            box.Visible = false
+                            boxDrawings[idx] = box
+                        end
+                        local box = boxDrawings[idx]
+                        box.Position = Vector2.new(minX, minY)
+                        box.Size = Vector2.new(maxX - minX, maxY - minY)
+                        box.Color = Options.ESPColor and Options.ESPColor.Value or Color3.fromRGB(255,255,0)
+                        box.Visible = true
+                        idx = idx + 1
+                    end
+                    if Toggles.NameESP.Value then
+                        if not nameDrawings[nidx] then
+                            local nameObj = Drawing.new('Text')
+                            nameObj.Size = 18
+                            nameObj.Center = true
+                            nameObj.Outline = true
+                            nameObj.Visible = false
+                            nameDrawings[nidx] = nameObj
+                        end
+                        local nameObj = nameDrawings[nidx]
+                        nameObj.Text = plr.Name
+                        nameObj.Position = Vector2.new((minX + maxX)/2, minY - 18)
+                        nameObj.Color = Options.ESPColor and Options.ESPColor.Value or Color3.fromRGB(255,255,0)
+                        nameObj.Visible = true
+                        nidx = nidx + 1
+                    end
+                    if Toggles.ToolESP.Value then
+                        local tool = nil
+                        for _, child in ipairs(char:GetChildren()) do
+                            if child:IsA('Tool') then
+                                tool = child
+                                break
+                            end
+                        end
+                        if tool then
+                            if not toolDrawings[tidx] then
+                                local toolObj = Drawing.new('Text')
+                                toolObj.Size = 16
+                                toolObj.Center = true
+                                toolObj.Outline = true
+                                toolObj.Visible = false
+                                toolDrawings[tidx] = toolObj
+                            end
+                            local toolObj = toolDrawings[tidx]
+                            toolObj.Text = tool.Name
+                            toolObj.Position = Vector2.new((minX + maxX)/2, maxY + 8)
+                            toolObj.Color = Options.ESPColor and Options.ESPColor.Value or Color3.fromRGB(255,255,0)
+                            toolObj.Visible = true
+                            tidx = tidx + 1
+                        end
+                    end
+                    if Toggles.TracerESP and Toggles.TracerESP.Value then
+                        if not tracerDrawings[tridx] then
+                            local tracer = Drawing.new('Line')
+                            tracer.Thickness = 2
+                            tracer.Visible = false
+                            tracerDrawings[tridx] = tracer
+                        end
+                        local tracer = tracerDrawings[tridx]
+                        local rootScreen, onScreen = Camera:WorldToViewportPoint(root.Position)
+                        if onScreen then
+                            tracer.From = Vector2.new(Camera.ViewportSize.X/2, Camera.ViewportSize.Y)
+                            tracer.To = Vector2.new(rootScreen.X, rootScreen.Y)
+                            tracer.Color = Options.ESPColor and Options.ESPColor.Value or Color3.fromRGB(255,255,0)
+                            tracer.Visible = true
+                            tridx = tridx + 1
+                        end
+                    end
+                    if Toggles.HealthbarESP and Toggles.HealthbarESP.Value then
+                        if not healthbarDrawings[hidx] then
+                            local bar = Drawing.new('Square')
+                            bar.Thickness = 1
+                            bar.Filled = true
+                            bar.Visible = false
+                            healthbarDrawings[hidx] = bar
+                        end
+                        local bar = healthbarDrawings[hidx]
+                        local humanoid = char:FindFirstChildOfClass('Humanoid')
+                        if humanoid then
+                            local health = math.clamp(humanoid.Health, 0, humanoid.MaxHealth)
+                            local percent = health / math.max(1, humanoid.MaxHealth)
+                            local barHeight = maxY - minY
+                            local barWidth = 4
+                            local barX = minX - barWidth - 2
+                            local barY = minY + (1 - percent) * barHeight
+                            bar.Position = Vector2.new(barX, barY)
+                            bar.Size = Vector2.new(barWidth, barHeight * percent)
+                            bar.Color = Color3.fromRGB(255 * (1 - percent), 255 * percent, 0)
+                            bar.Visible = true
+                            hidx = hidx + 1
+                        end
+                    end
+                end
+            end
+        end
+    end
+    for i = idx, #boxDrawings do if boxDrawings[i] then boxDrawings[i].Visible = false end end
+    for i = nidx, #nameDrawings do if nameDrawings[i] then nameDrawings[i].Visible = false end end
+    for i = tidx, #toolDrawings do if toolDrawings[i] then toolDrawings[i].Visible = false end end
+    for i = tridx, #tracerDrawings do if tracerDrawings[i] then tracerDrawings[i].Visible = false end end
+    for i = hidx, #healthbarDrawings do if healthbarDrawings[i] then healthbarDrawings[i].Visible = false end end
+end)
+
+-- Chams ESP logic (sync color with color picker)
+local chamsHighlights = {}
+RunService.RenderStepped:Connect(function()
+    if Toggles.ChamsESP and Toggles.ChamsESP.Value then
+        for _, plr in ipairs(Players:GetPlayers()) do
+            if plr ~= player and plr.Character then
+                if not chamsHighlights[plr] then
+                    local highlight = Instance.new('Highlight')
+                    highlight.FillTransparency = 0.3
+                    highlight.OutlineTransparency = 0.1
+                    highlight.Parent = plr.Character
+                    highlight.Adornee = plr.Character
+                    chamsHighlights[plr] = highlight
+                end
+                -- Always update color to match ESPColor
+                local highlight = chamsHighlights[plr]
+                if highlight then
+                    highlight.FillColor = Options.ESPColor and Options.ESPColor.Value or Color3.fromRGB(255,255,0)
+                end
+            elseif chamsHighlights[plr] then
+                chamsHighlights[plr]:Destroy()
+                chamsHighlights[plr] = nil
+            end
+        end
+    else
+        for plr, highlight in pairs(chamsHighlights) do
+            if highlight then highlight:Destroy() end
+            chamsHighlights[plr] = nil
+        end
+    end
+end)
+
+-- Distance ESP logic (shows distance under box)
+local distanceDrawings = {}
+RunService.RenderStepped:Connect(function()
+    local Camera = workspace.CurrentCamera
+    if not Camera then return end
+    for _, distText in pairs(distanceDrawings) do distText.Visible = false end
+    local didx = 1
+    if Toggles.DistanceESP and Toggles.DistanceESP.Value then
+        for _, plr in ipairs(Players:GetPlayers()) do
+            if plr ~= player and plr.Character and plr.Character:FindFirstChild('HumanoidRootPart') then
+                local root = plr.Character.HumanoidRootPart
+                local screen, onScreen = Camera:WorldToViewportPoint(root.Position)
+                if onScreen then
+                    if not distanceDrawings[didx] then
+                        local distObj = Drawing.new('Text')
+                        distObj.Size = 16
+                        distObj.Center = true
+                        distObj.Outline = true
+                        distObj.Visible = false
+                        distanceDrawings[didx] = distObj
+                    end
+                    local distObj = distanceDrawings[didx]
+                    local dist = math.floor((root.Position - Camera.CFrame.Position).Magnitude)
+                    distObj.Text = tostring(dist) .. 'm'
+                    distObj.Position = Vector2.new(screen.X, screen.Y + 30)
+                    distObj.Color = Options.ESPColor and Options.ESPColor.Value or Color3.fromRGB(255,255,0)
+                    distObj.Visible = true
+                    didx = didx + 1
+                end
+            end
+        end
+    end
+    for i = didx, #distanceDrawings do if distanceDrawings[i] then distanceDrawings[i].Visible = false end end
+end)
+
+-- Dead/Ragdoll ESP logic
+local deadDrawings = {}
+RunService.RenderStepped:Connect(function()
+    local Camera = workspace.CurrentCamera
+    if not Camera then return end
+    for _, deadText in pairs(deadDrawings) do deadText.Visible = false end
+    local didx = 1
+    if Toggles.DeadESP and Toggles.DeadESP.Value then
+        for _, plr in ipairs(Players:GetPlayers()) do
+            if plr ~= player and plr.Character and plr.Character:FindFirstChild('Humanoid') and plr.Character:FindFirstChild('Head') then
+                local humanoid = plr.Character:FindFirstChild('Humanoid')
+                local isDead = humanoid.Health <= 0 or humanoid:GetState() == Enum.HumanoidStateType.Physics or humanoid:GetState() == Enum.HumanoidStateType.Ragdoll
+                if isDead then
+                    local head = plr.Character.Head
+                    local screen, onScreen = Camera:WorldToViewportPoint(head.Position)
+                    if onScreen then
+                        if not deadDrawings[didx] then
+                            local deadObj = Drawing.new('Text')
+                            deadObj.Size = 18
+                            deadObj.Center = true
+                            deadObj.Outline = true
+                            deadObj.Visible = false
+                            deadDrawings[didx] = deadObj
+                        end
+                        local deadObj = deadDrawings[didx]
+                        deadObj.Text = 'DEAD'
+                        deadObj.Position = Vector2.new(screen.X, screen.Y - 30)
+                        deadObj.Color = Color3.fromRGB(255, 0, 0)
+                        deadObj.Visible = true
+                        didx = didx + 1
+                    end
+                end
+            end
+        end
+    end
+    for i = didx, #deadDrawings do if deadDrawings[i] then deadDrawings[i].Visible = false end end
+end)
+
+-- Improved Radar ESP logic
+local radarFrame, radarBorder, radarCenter, radarDots = nil, nil, nil, {}
+RunService.RenderStepped:Connect(function()
+    if Toggles.RadarESP and Toggles.RadarESP.Value then
+        -- Radar frame (background)
+        if not radarFrame then
+            radarFrame = Drawing.new('Square')
+            radarFrame.Size = Vector2.new(150, 150)
+            radarFrame.Position = Vector2.new(80, 120)
+            radarFrame.Color = Color3.fromRGB(30, 30, 30)
+            radarFrame.Filled = true
+            radarFrame.Transparency = 0.7
+            radarFrame.Visible = true
+        end
+        radarFrame.Visible = true
+        -- Radar border
+        if not radarBorder then
+            radarBorder = Drawing.new('Square')
+            radarBorder.Size = Vector2.new(150, 150)
+            radarBorder.Position = Vector2.new(80, 120)
+            radarBorder.Color = Color3.fromRGB(255, 255, 255)
+            radarBorder.Filled = false
+            radarBorder.Thickness = 2
+            radarBorder.Visible = true
+        end
+        radarBorder.Visible = true
+        -- Radar center (your position)
+        if not radarCenter then
+            radarCenter = Drawing.new('Circle')
+            radarCenter.Radius = 5
+            radarCenter.Filled = true
+            radarCenter.Color = Color3.fromRGB(0,255,0)
+            radarCenter.Position = radarFrame.Position + radarFrame.Size/2
+            radarCenter.Visible = true
+        end
+        radarCenter.Position = radarFrame.Position + radarFrame.Size/2
+        radarCenter.Visible = true
+        -- Draw player dots
+        local myChar = player.Character
+        local myRoot = myChar and myChar:FindFirstChild('HumanoidRootPart')
+        local center = radarFrame.Position + radarFrame.Size/2
+        local scale = 0.15 -- Lower = more zoomed out
+        local radarRadius = 75 -- Half of radar size
+        local idx = 1
+        for _, dot in pairs(radarDots) do dot.Visible = false end
+        if myRoot then
+            for _, plr in ipairs(Players:GetPlayers()) do
+                if plr.Character and plr.Character:FindFirstChild('HumanoidRootPart') then
+                    local rel = plr.Character.HumanoidRootPart.Position - myRoot.Position
+                    local x = rel.X * scale
+                    local y = rel.Z * scale
+                    -- Only show dots within radar bounds
+                    if math.abs(x) <= radarRadius and math.abs(y) <= radarRadius then
+                        if not radarDots[idx] then
+                            local dot = Drawing.new('Circle')
+                            dot.Radius = 4
+                            dot.Filled = true
+                            dot.Visible = false
+                            radarDots[idx] = dot
+                        end
+                        local dot = radarDots[idx]
+                        dot.Position = center + Vector2.new(x, y)
+                        dot.Color = (plr == player) and Color3.fromRGB(0,255,0) or (Options.ESPColor and Options.ESPColor.Value or Color3.fromRGB(255,255,0))
+                        dot.Visible = true
+                        idx = idx + 1
+                    end
+                end
+            end
+        end
+        for i = idx, #radarDots do if radarDots[i] then radarDots[i].Visible = false end end
+    else
+        if radarFrame then radarFrame.Visible = false end
+        if radarBorder then radarBorder.Visible = false end
+        if radarCenter then radarCenter.Visible = false end
+        for _, dot in pairs(radarDots) do dot.Visible = false end
+    end
+end)
+
+-- Health Percent ESP logic
+local healthPercentDrawings = {}
+RunService.RenderStepped:Connect(function()
+    local Camera = workspace.CurrentCamera
+    if not Camera then return end
+    for _, hpText in pairs(healthPercentDrawings) do hpText.Visible = false end
+    local hidx = 1
+    if Toggles.HealthPercentESP and Toggles.HealthPercentESP.Value then
+        for _, plr in ipairs(Players:GetPlayers()) do
+            if plr ~= player and plr.Character and plr.Character:FindFirstChild('HumanoidRootPart') and plr.Character:FindFirstChild('Humanoid') then
+                local root = plr.Character.HumanoidRootPart
+                local humanoid = plr.Character.Humanoid
+                local percent = math.floor((humanoid.Health / math.max(1, humanoid.MaxHealth)) * 100)
+                local screen, onScreen = Camera:WorldToViewportPoint(root.Position)
+                if onScreen then
+                    if not healthPercentDrawings[hidx] then
+                        local hpObj = Drawing.new('Text')
+                        hpObj.Size = 18
+                        hpObj.Center = true
+                        hpObj.Outline = true
+                        hpObj.Visible = false
+                        healthPercentDrawings[hidx] = hpObj
+                    end
+                    local hpObj = healthPercentDrawings[hidx]
+                    hpObj.Text = tostring(percent) .. '%'
+                    hpObj.Position = Vector2.new(screen.X, screen.Y)
+                    hpObj.Color = Options.ESPColor and Options.ESPColor.Value or Color3.fromRGB(255,255,0)
+                    hpObj.Visible = true
+                    hidx = hidx + 1
+                end
+            end
+        end
+    end
+    for i = hidx, #healthPercentDrawings do if healthPercentDrawings[i] then healthPercentDrawings[i].Visible = false end end
+end)
+
+-- UI Settings, Theme, Save
+local MenuGroup = Tabs['UI Settings']:AddLeftGroupbox('Menu')
+MenuGroup:AddButton('Unload', function() Library:Unload() end)
+MenuGroup:AddLabel('Menu bind'):AddKeyPicker('MenuKeybind', { Default = 'End', NoUI = true, Text = 'Menu keybind' })
+Library.ToggleKeybind = Options.MenuKeybind
+ThemeManager:SetLibrary(Library)
+SaveManager:SetLibrary(Library)
+SaveManager:IgnoreThemeSettings()
+SaveManager:SetIgnoreIndexes({ 'MenuKeybind' })
+ThemeManager:SetFolder('GhostWare')
+SaveManager:SetFolder('GhostWare/DaHood')
+SaveManager:BuildConfigSection(Tabs['UI Settings'])
+ThemeManager:ApplyToTab(Tabs['UI Settings'])
+SaveManager:LoadAutoloadConfig()
+
+-- Wall Climb / Spider Climb logic
+RunService.RenderStepped:Connect(function()
+    if Toggles.WallClimb and Toggles.WallClimb.Value and player.Character and player.Character:FindFirstChild('HumanoidRootPart') then
+        local char = player.Character
+        local hrp = char.HumanoidRootPart
+        local humanoid = char:FindFirstChildOfClass('Humanoid')
+        if humanoid and UserInputService:IsKeyDown(Enum.KeyCode.Space) then
+            local ray = Ray.new(hrp.Position, hrp.CFrame.LookVector * 2)
+            local hit = workspace:FindPartOnRay(ray, char)
+            if hit and hit.CanCollide and not hit:IsDescendantOf(char) then
+                hrp.Velocity = Vector3.new(hrp.Velocity.X, 30, hrp.Velocity.Z)
+            end
+        end
+    end
+end)
+
+-- Hitbox Expander logic (fixed, no freezing)
+local originalSizes = {}
+local originalProps = {}
+RunService.RenderStepped:Connect(function()
+    if Toggles.HitboxExpander and Toggles.HitboxExpander.Value then
+        for _, plr in ipairs(Players:GetPlayers()) do
+            if plr ~= player and plr.Character and plr.Character:FindFirstChild('HumanoidRootPart') then
+                local hrp = plr.Character.HumanoidRootPart
+                if not originalSizes[plr] then
+                    originalSizes[plr] = hrp.Size
+                    originalProps[plr] = {
+                        CanCollide = hrp.CanCollide,
+                        Transparency = hrp.Transparency,
+                        Color = hrp.Color,
+                        Material = hrp.Material
+                    }
+                end
+                hrp.Size = Vector3.new(Options.HitboxSize.Value, Options.HitboxSize.Value, Options.HitboxSize.Value)
+                hrp.Transparency = 0.7
+                hrp.Color = Options.HitboxColor and Options.HitboxColor.Value or Color3.fromRGB(255, 0, 0)
+                hrp.Material = Enum.Material.Neon
+                hrp.CanCollide = false
+                -- Do NOT set Massless or CustomPhysicalProperties
+            end
+        end
+    else
+        for _, plr in ipairs(Players:GetPlayers()) do
+            if plr ~= player and plr.Character and plr.Character:FindFirstChild('HumanoidRootPart') and originalSizes[plr] then
+                local hrp = plr.Character.HumanoidRootPart
+                hrp.Size = originalSizes[plr]
+                if originalProps[plr] then
+                    hrp.CanCollide = originalProps[plr].CanCollide
+                    hrp.Transparency = originalProps[plr].Transparency
+                    hrp.Color = originalProps[plr].Color
+                    hrp.Material = originalProps[plr].Material
+                end
+                originalSizes[plr] = nil
+                originalProps[plr] = nil
+            end
+        end
+    end
+end)
+
+-- Misc Tab
+local MiscBox = Tabs.Misc:AddLeftGroupbox('Miscellaneous')
+MiscBox:AddToggle('HitboxExpander', { Text = 'Hitbox Expander', Default = false })
+MiscBox:AddSlider('HitboxSize', { Text = 'Hitbox Size', Default = 15, Min = 2, Max = 50, Rounding = 0 })
+MiscBox:AddLabel('Hitbox Color'):AddColorPicker('HitboxColor', { Default = Color3.fromRGB(255, 0, 0), Title = 'Hitbox Color', Transparency = 0 })
+
+-- Spectate Section
+local SpectateBox = Tabs.Misc:AddLeftGroupbox('Spectate')
+local function getSpectatePlayerNames()
+    local names = {}
+    for _, plr in ipairs(Players:GetPlayers()) do
+        if plr ~= player then table.insert(names, plr.Name) end
+    end
+    return names
+end
+SpectateBox:AddDropdown('SpectatePlayer', { Text = 'Select Player', Values = getSpectatePlayerNames(), Default = 1, Multi = false })
+SpectateBox:AddButton({ Text = 'Spectate', Func = function()
+    local targetName = Options.SpectatePlayer.Value
+    local target = Players:FindFirstChild(targetName)
+    if target and target.Character and target.Character:FindFirstChild('HumanoidRootPart') then
+        workspace.CurrentCamera.CameraSubject = target.Character:FindFirstChild('Humanoid') or target.Character:FindFirstChild('HumanoidRootPart')
+    end
+end })
+SpectateBox:AddButton({ Text = 'Unspectate', Func = function()
+    if player.Character then
+        workspace.CurrentCamera.CameraSubject = player.Character:FindFirstChild('Humanoid') or player.Character:FindFirstChild('HumanoidRootPart')
+    end
+end })
+-- Update player list on player join/leave for spectate
+Players.PlayerAdded:Connect(function()
+    Options.SpectatePlayer:SetValues(getSpectatePlayerNames())
+end)
+Players.PlayerRemoving:Connect(function()
+    Options.SpectatePlayer:SetValues(getSpectatePlayerNames())
+end)
+
+-- Exploits Section (Target Strafe)
+local ExploitsBox = Tabs.Misc:AddLeftGroupbox('Exploits')
+ExploitsBox:AddToggle('TargetStrafeEnabled', { Text = 'Enable Target Strafe', Default = false })
+ExploitsBox:AddLabel('Target Strafe Key'):AddKeyPicker('TargetStrafeKey', { Text = 'Target Strafe Key', Default = 'T', NoUI = false })
+ExploitsBox:AddSlider('TargetStrafeRange', { Text = 'Strafe Range', Default = 10, Min = 5, Max = 30, Rounding = 1 })
+ExploitsBox:AddSlider('TargetStrafeSpeed', { Text = 'Strafe Speed', Default = 2, Min = 0.5, Max = 10, Rounding = 1 })
+ExploitsBox:AddToggle('TargetStrafeAutoLock', { Text = 'Auto Lock-On (Target Strafe)', Default = true })
+ExploitsBox:AddDropdown('TargetStrafeType', {
+    Text = 'Strafe Type',
+    Values = { 'Circle', 'Spiral', 'Zigzag' },
+    Default = 'Circle'
+})
+
+-- Camera Section
+local CameraBox = Tabs.Misc:AddLeftGroupbox('Camera')
+CameraBox:AddToggle('CustomFOVToggle', { Text = 'Enable Custom FOV', Default = false })
+CameraBox:AddSlider('CustomFOVValue', { Text = 'Camera FOV', Default = 70, Min = 30, Max = 120, Rounding = 0 })
+
+-- Character Section
+local CharacterBox = Tabs.Misc:AddLeftGroupbox('Character')
+CharacterBox:AddButton('Reset Character', function()
+    local char = player.Character
+    if char and char:FindFirstChildOfClass('Humanoid') then
+        char:FindFirstChildOfClass('Humanoid').Health = 0
+    end
+end)
+
+-- Custom FOV logic
+RunService.RenderStepped:Connect(function()
+    local Camera = workspace.CurrentCamera
+    if not Camera then return end
+    if Toggles.CustomFOVToggle and Toggles.CustomFOVToggle.Value then
+        Camera.FieldOfView = Options.CustomFOVValue.Value
+    end
+end)
+
+-- Target Strafe logic (hover, select, highlight, strafe)
+local targetStrafeState = 0 -- 0 = none, 1 = selected, 2 = strafing
+local selectedTarget = nil
+local highlight = nil
+UserInputService.InputBegan:Connect(function(input, gp)
+    if gp then return end
+    if input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode.Name == Options.TargetStrafeKey.Value then
+        if not (Toggles.TargetStrafeEnabled and Toggles.TargetStrafeEnabled.Value) then return end
+        if targetStrafeState == 0 then
+            -- Find nearest player to mouse
+            local Camera = workspace.CurrentCamera
+            local mousePos = UserInputService:GetMouseLocation()
+            local closest, minDist = nil, math.huge
+            for _, plr in ipairs(Players:GetPlayers()) do
+                if plr ~= player and plr.Character and plr.Character:FindFirstChild('HumanoidRootPart') then
+                    local hrp = plr.Character.HumanoidRootPart
+                    local screenPos, onScreen = Camera:WorldToViewportPoint(hrp.Position)
+                    if onScreen then
+                        local dist = (Vector2.new(screenPos.X, screenPos.Y) - Vector2.new(mousePos.X, mousePos.Y)).Magnitude
+                        if dist < minDist and dist < 100 then -- 100px threshold
+                            minDist = dist
+                            closest = plr
+                        end
+                    end
+                end
+            end
+            if closest then
+                selectedTarget = closest
+                targetStrafeState = 1
+                -- Highlight
+                if highlight then highlight:Destroy() end
+                highlight = Instance.new('Highlight')
+                highlight.FillColor = Color3.fromRGB(255,255,255)
+                highlight.OutlineColor = Color3.fromRGB(200,200,200)
+                highlight.FillTransparency = 0.3
+                highlight.OutlineTransparency = 0
+                highlight.Parent = closest.Character
+                highlight.Adornee = closest.Character
+            end
+        elseif targetStrafeState == 1 then
+            targetStrafeState = 2 -- Start strafing
+        elseif targetStrafeState == 2 then
+            targetStrafeState = 0 -- Disable
+            if highlight then highlight:Destroy() highlight = nil end
+            selectedTarget = nil
+        end
+    end
+end)
+RunService.RenderStepped:Connect(function()
+    if highlight and (not selectedTarget or not selectedTarget.Character or not selectedTarget.Character:FindFirstChild('HumanoidRootPart')) then
+        highlight:Destroy()
+        highlight = nil
+        selectedTarget = nil
+        targetStrafeState = 0
+    end
+    if Toggles.TargetStrafeEnabled and Toggles.TargetStrafeEnabled.Value and targetStrafeState == 2 and selectedTarget and selectedTarget.Character and selectedTarget.Character:FindFirstChild('HumanoidRootPart') and getCharHRP() then
+        local hrp = getCharHRP()
+        local targetHRP = selectedTarget.Character.HumanoidRootPart
+        local range = Options.TargetStrafeRange.Value
+        local speed = Options.TargetStrafeSpeed.Value
+        local strafeType = Options.TargetStrafeType and Options.TargetStrafeType.Value or 'Circle'
+        local angle = tick() * speed % (2 * math.pi)
+        local offset
+        if strafeType == 'Circle' then
+            offset = CFrame.new(math.cos(angle) * range, 0, math.sin(angle) * range)
+        elseif strafeType == 'Spiral' then
+            local spiralHeight = math.sin(angle * 2) * (range / 2)
+            offset = CFrame.new(math.cos(angle) * range, spiralHeight, math.sin(angle) * range)
+        elseif strafeType == 'Zigzag' then
+            local zigzag = math.sin(angle * 4) * (range / 2)
+            offset = CFrame.new(math.cos(angle) * range, 0, math.sin(angle) * range + zigzag)
+        else
+            offset = CFrame.new(math.cos(angle) * range, 0, math.sin(angle) * range)
+        end
+        hrp.CFrame = CFrame.new(targetHRP.Position) * offset * CFrame.Angles(0, math.pi + angle, 0)
+        -- Auto lock-on to head if enabled
+        if Toggles.TargetStrafeAutoLock and Toggles.TargetStrafeAutoLock.Value then
+            local Camera = workspace.CurrentCamera
+            local head = selectedTarget.Character:FindFirstChild('Head')
+            if Camera and head then
+                Camera.CFrame = CFrame.new(Camera.CFrame.Position, head.Position)
+            end
+        end
+    end
+end)
+
+-- Dev Stuff Section
+local DevBox = Tabs.Misc:AddLeftGroupbox('Dev Stuff')
+DevBox:AddButton('Print My CFrame', function()
+    local char = player.Character
+    if char and char:FindFirstChild('HumanoidRootPart') then
+        print('My CFrame:', char.HumanoidRootPart.CFrame)
+    else
+        warn('Character or HumanoidRootPart not found!')
+    end
+end)
+DevBox:AddButton('Print All Player Positions', function()
+    for _, plr in ipairs(Players:GetPlayers()) do
+        if plr.Character and plr.Character:FindFirstChild('HumanoidRootPart') then
+            print(plr.Name .. ':', plr.Character.HumanoidRootPart.Position)
+        end
+    end
+end)
+
+-- Click TP logic
+UserInputService.InputBegan:Connect(function(input, gp)
+    if gp then return end
+    if Toggles.ClickTPEnabled and Toggles.ClickTPEnabled.Value and input.KeyCode.Name == Options.ClickTPKey.Value then
+        local mouse = player:GetMouse()
+        local char = player.Character
+        if mouse and char and char:FindFirstChild('HumanoidRootPart') then
+            -- Raycast from camera to mouse position
+            local cam = workspace.CurrentCamera
+            local unitRay = cam:ScreenPointToRay(mouse.X, mouse.Y)
+            local ray = Ray.new(unitRay.Origin, unitRay.Direction * 1000)
+            local ignoreList = {char}
+            local hit, pos = workspace:FindPartOnRayWithIgnoreList(ray, ignoreList)
+            if pos then
+                char.HumanoidRootPart.CFrame = CFrame.new(pos + Vector3.new(0, 3, 0))
+            end
+        end
+    end
+end)
+
+-- End of script 
